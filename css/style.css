@@ -48,6 +48,7 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .board-wrap{position:relative;width:100%;max-width:100%;aspect-ratio:1}
 .board{display:grid;width:100%;height:100%;border:3px solid var(--line);border-radius:10px;overflow:hidden;
   touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:var(--line)}
+.board>.row{display:contents}
 .cell{position:relative;display:grid;place-items:center;cursor:pointer;border:0 solid var(--line);outline:none;min-width:0;min-height:0;overflow:hidden}
 .cell svg{position:absolute;inset:0;margin:auto;width:66%;height:66%;pointer-events:none}
 .cell .x{width:32%;height:32%;color:var(--ink);opacity:.75}

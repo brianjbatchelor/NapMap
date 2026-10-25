@@ -38,14 +38,15 @@ function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=n
 /* ---------- render ---------- */
 function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;b.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
   if(cellEls.length!==n*n||b.dataset.seed!=P.seed){b.innerHTML='';cellEls=[];b.dataset.seed=P.seed;
-    for(let k=0;k<n*n;k++){const r=k/n|0,c=k%n,g=P.reg[k],e=document.createElement('div');
+    let row;for(let k=0;k<n*n;k++){const r=k/n|0,c=k%n,g=P.reg[k],e=document.createElement('div');
+      if(!c){row=document.createElement('div');row.className='row';row.setAttribute('role','row');b.appendChild(row)}
       e.className='cell';e.dataset.k=k;e.dataset.bed=P.colors[g];e.setAttribute('role','gridcell');e.tabIndex=k===0?0:-1;
       const up=r===0||P.reg[k-n]!==g,dn=r===n-1||P.reg[k+n]!==g,lf=c===0||P.reg[k-1]!==g,rt=c===n-1||P.reg[k+1]!==g,R='22%';
       e.style.borderRadius=`${up&&lf?R:0} ${up&&rt?R:0} ${dn&&rt?R:0} ${dn&&lf?R:0}`;e.title=BEDS[P.colors[g]];
       e.style.setProperty('--et',+up);e.style.setProperty('--eb',+dn);e.style.setProperty('--el',+lf);e.style.setProperty('--er',+rt);
       const side=(edge,outer)=>outer?'0px solid transparent':edge?'1.5px solid var(--line)':'.5px solid var(--seam)';
       e.style.borderTop=side(up,r===0);e.style.borderBottom=side(dn,r===n-1);e.style.borderLeft=side(lf,c===0);e.style.borderRight=side(rt,c===n-1);
-      b.appendChild(e);cellEls.push(e)}}
+      row.appendChild(e);cellEls.push(e)}}
   cellEls.forEach((e,k)=>{const s=cells[k],cls='cell'+(s===2?' cat':'')+(s===3?' wrong':'');
     if(e.dataset.s!=s){e.dataset.s=s;e.className=cls;
       e.innerHTML=s===2?'<svg><use href="#cat"/></svg>':(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
@@ -54,7 +55,7 @@ function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat($
   $('label').textContent=lab;
   document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.setAttribute('aria-pressed',ch.dataset.mode==mode));
   $('undo').disabled=!undo.length||done;$('hint').disabled=done;renderStats()}
-function renderHearts(){$('hearts').innerHTML=[0,1,2].map(i=>`<svg class="${i>=lives?'lost':''}"><use href="#heart"/></svg>`).join('')}
+function renderHearts(){$('hearts').setAttribute('aria-label',`${lives} of 3 hearts left`);$('hearts').innerHTML=[0,1,2].map(i=>`<svg class="${i>=lives?'lost':''}"><use href="#heart"/></svg>`).join('')}
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function tick(){$('timer').textContent=fmt(elapsed+(startT?Date.now()-startT:0))}
 function startClock(){if(startT||done)return;if(!elapsed)emit('start',info());startT=Date.now();timerId=setInterval(tick,250)}
