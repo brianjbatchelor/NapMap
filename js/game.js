@@ -1,5 +1,5 @@
 (()=>{
-const {generate}=window.SunGen;
+const DIFF=window.NapMapDifficulty; /* difficulty: rating, rated generation, hint steps (js/difficulty.js) */
 /* ---------- beds: each region is a different piece of cat furniture (art in css/furniture.css) ---------- */
 const BEDS=['Tufty Puff Pillow','Knitty-Knot Blankets','Sisal Tippy Tower','Wiggle-Wicker Basket','Swingy Hammock',
   'Very Good Box','Plushy Donut Bed','Tippy Teepee','Cloud-Fluff Bed','Velvet Fainting Couch'];
@@ -23,16 +23,19 @@ function newPuzzle(m,seed,opts={}){mode=m;const n=m==='daily'?8:+m;let dateKey=n
   else if(seed==null)seed=(Math.random()*2**31)|0;
   const my=++genToken,wrap=document.querySelector('.board-wrap');
   const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;reset();store.set('mode',m);emit('newPuzzle',info())};
-  if(n<10||!P||!genWorker){use(generate(n,seed));return}
-  /* big boards take up to a couple of seconds, so build them off the main thread */
+  /* --- difficulty: rated generation (js/difficulty.js), target per mode --- */
+  const target=DIFF.TARGETS[m],build=()=>DIFF.generateRated(n,seed,target);
+  if(n<9||!P||!genWorker){use(build());return}
+  /* 9x9 and 10x10 rated boards can take a second or more, so build them off the main thread */
+  /* --- end difficulty --- */
   wrap.setAttribute('aria-busy','true');
-  genAsync(n,seed).catch(()=>generate(n,seed)).then(use).finally(()=>{if(my===genToken)wrap.removeAttribute('aria-busy')})}
+  genAsync(n,seed,target).catch(build).then(use).finally(()=>{if(my===genToken)wrap.removeAttribute('aria-busy')})}
 let genToken=0,genReq=0;
 const genWorker=(()=>{try{return typeof Worker!=='undefined'&&location.protocol!=='file:'?new Worker('js/gen-worker.js'):null}catch(e){return null}})();
-const genAsync=(n,seed)=>new Promise((res,rej)=>{const id=++genReq;
+const genAsync=(n,seed,target)=>new Promise((res,rej)=>{const id=++genReq;
   const h=e=>{if(e.data.id!==id)return;genWorker.removeEventListener('message',h);e.data.ok?res(e.data.puzzle):rej(new Error(e.data.error))};
-  genWorker.addEventListener('message',h);genWorker.postMessage({id,n,seed})});
-function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=null;done=false;clearInterval(timerId);
+  genWorker.addEventListener('message',h);genWorker.postMessage({id,n,seed,target})});
+function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=null;done=false;clearInterval(timerId);hideHint();
   $('overlay').hidden=true;render();renderHearts();tick()}
 
 /* ---------- render ---------- */
@@ -52,6 +55,11 @@ function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat($
     const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${BEDS[P.colors[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
   const lab=mode==='daily'?(P.dateKey===today()?'Daily · ':'Past daily · ')+dateOf(P.dateKey).toLocaleDateString(undefined,{month:'short',day:'numeric'}):`${P.n}×${P.n} · #${(P.seed%100000).toString().padStart(5,'0')}`;
   $('label').textContent=lab;
+  /* --- difficulty: stars after the label --- */
+  const lv=P.rating&&Math.min(4,P.rating.level);
+  if(lv){const s=document.createElement('span');s.className='stars';s.textContent=' · '+'★'.repeat(lv)+'☆'.repeat(4-lv);
+    s.title=`Difficulty ${lv} of 4: ${STAR_TIPS[lv-1]}`;s.setAttribute('aria-label',`Difficulty ${lv} of 4`);$('label').appendChild(s)}
+  /* --- end difficulty --- */
   document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.setAttribute('aria-pressed',ch.dataset.mode==mode));
   $('undo').disabled=!undo.length||done;$('hint').disabled=done;renderStats()}
 /* sleeping-cat coat, stable per puzzle and cell; stepping by 3 through 7 coats keeps nearby beds different (css/cats.css) */
@@ -100,17 +108,23 @@ $('overlay').addEventListener('click',e=>{const a=e.target.closest('[data-act]')
   else if(a==='reveal'){$('overlay').hidden=true;cells=cells.map((s,k)=>isSol(k)?2:s===3?3:1);render()}});
 
 /* ---------- hint ---------- */
-function hint(){if(done)return;startClock();const n=P.n;
-  const blocked=new Set();cells.forEach((s,k)=>{if(s===2)peers(k).forEach(q=>blocked.add(q))});
-  let best=null;
-  for(let g=0;g<n;g++){const ks=[];for(let k=0;k<n*n;k++)if(P.reg[k]===g)ks.push(k);if(ks.some(k=>cells[k]===2))continue;
-    const open=ks.filter(k=>cells[k]===0&&!blocked.has(k));if(!best||open.length<best.length)best=open}
-  if(!best)return;const k=best.length===1&&isSol(best[0])?best[0]:best.find(k=>!isSol(k));
-  const blockedOpen=[...blocked].find(k=>cells[k]===0);
-  if(k==null&&blockedOpen==null)return;
-  const target=blockedOpen!=null&&(k==null||!$('autox').checked)?blockedOpen:k;
-  if(isSol(target)&&cells[target]===0){placeCat(target)}else{snapshot();cells[target]=1;render()}
-  const e=cellEls[target];e.classList.remove('hint');void e.offsetWidth;e.classList.add('hint')}
+/* --- difficulty: hints come from DIFF.nextStep, explained in the bubble under the board (css/difficulty.css) --- */
+const STAR_TIPS=['solvable by spotting rows, columns and beds with one open spot',
+  'needs spotting a bed that fits in one row or column',
+  'needs spotting where a cat would squeeze out a whole row, column or bed',
+  'needs spotting groups of beds that share the same rows or columns'];
+let hintTimer=0;
+function hideHint(){const b=$('hint-bubble');if(b)b.hidden=true;clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone'))}
+function hint(){if(done)return;startClock();
+  const step=DIFF.nextStep(P,cells,{names:P.colors.map(c=>BEDS[c])});
+  if(step.action==='place'){if(cells[step.cell]===0)placeCat(step.cell)}
+  else if(step.action==='cross'){snapshot();step.cells.forEach(k=>{if(cells[k]===0)cells[k]=1});render()}
+  clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone','hint'));void $('board').offsetWidth;
+  step.zone.forEach(k=>cellEls[k].classList.add('hint-zone'));step.cells.forEach(k=>cellEls[k].classList.add('hint'));
+  hintTimer=setTimeout(()=>cellEls.forEach(e=>e.classList.remove('hint-zone')),1800);
+  const b=$('hint-bubble');if(b&&step.text){b.hidden=false;b.dataset.rule=step.rule;$('hint-text').textContent=step.text}}
+$('hint-close').onclick=hideHint;
+/* --- end difficulty --- */
 
 /* ---------- input ---------- */
 const board=$('board');let drag=null,lastTap={k:-1,t:0,prev:null};
