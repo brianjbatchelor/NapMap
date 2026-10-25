@@ -2,6 +2,7 @@
    Bump VERSION whenever any shell file changes. */
 const VERSION = 'napmap-v2';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/generator.js', 'js/game.js',
+  'css/archive.css', 'js/archive.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
