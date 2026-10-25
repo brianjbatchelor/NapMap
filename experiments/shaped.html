@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NapMap Room Prototype</title>
+<meta name="description" content="Prototype: NapMap puzzles whose areas are furniture-shaped blocks arranged like a little room.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&family=Nunito:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Room tokens (theme tokens like --ink, --r0..--r9 come from ../css/style.css) */
+:root{--wall:#F4E7D7;--wall2:#EEDCC6;--floor:#D8B184;--floor2:#C99D6E;--skirt:#B98A5B;--block-mix:86%;--grid:rgba(31,42,68,.16);--shade:rgba(60,35,10,.18)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--wall:#2B3048;--wall2:#262A40;--floor:#3B3242;--floor2:#332B3A;--skirt:#4A3E52;--block-mix:90%;--grid:rgba(255,255,255,.13);--shade:rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{--wall:#2B3048;--wall2:#262A40;--floor:#3B3242;--floor2:#332B3A;--skirt:#4A3E52;--block-mix:90%;--grid:rgba(255,255,255,.13);--shade:rgba(0,0,0,.35)}
+.wrap{gap:14px}
+h1{font-size:1.7rem}
+.sub{color:var(--muted);font-weight:700;font-size:.85rem;margin-top:2px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar label{font-weight:800;font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+select{font:inherit;font-weight:800;font-size:.85rem;border:2px solid var(--ink);border-radius:999px;background:var(--surface);color:var(--ink);padding:5px 10px}
+.newbtn{font:inherit;font-weight:800;font-size:.9rem;border:2px solid var(--ink);background:var(--sun);color:#1F2A44;border-radius:999px;padding:6px 14px;cursor:pointer;margin-left:auto}
+.newbtn:active{transform:translateY(1px)}
+.room{position:relative;width:100%;aspect-ratio:1;border:3px solid var(--line);border-radius:14px;overflow:hidden;padding:6px;
+  background:
+    linear-gradient(to bottom,transparent 61%,var(--skirt) 61%,var(--skirt) 63.5%,transparent 63.5%),
+    repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.06) 22px 24px) top/100% 61% no-repeat,
+    repeating-linear-gradient(90deg,var(--wall) 0 14px,var(--wall2) 14px 28px) top/100% 61% no-repeat,
+    repeating-linear-gradient(0deg,var(--floor) 0 18px,var(--floor2) 18px 19px) bottom/100% 39% no-repeat;
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.stage{position:relative;width:100%;height:100%}
+.stage>svg.blocks{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.blk{stroke:var(--line);stroke-width:2px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.blk-shadow{fill:var(--shade)}
+.furn-art{opacity:.9}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .furn-art{opacity:.78}}
+:root[data-theme="dark"] .furn-art{opacity:.78}
+.grid{position:absolute;inset:0;display:grid}
+.c{position:relative;border-right:1px dashed var(--grid);border-bottom:1px dashed var(--grid);cursor:pointer;min-width:0;min-height:0}
+.c svg{position:absolute;inset:0;margin:auto;width:64%;height:64%;pointer-events:none;
+  filter:drop-shadow(0 0 1.5px var(--surface)) drop-shadow(0 0 1.5px var(--surface))}
+.c .x{width:30%;height:30%;color:var(--ink);opacity:.8}
+.c.wrong .x{color:var(--heart);opacity:1;width:42%;height:42%}
+.c.cat svg{color:var(--ink);animation:pop .28s ease-out}
+.c.shake{animation:shake .35s}
+.c:focus-visible{outline:3px solid var(--sun);outline-offset:-3px}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{background:var(--surface);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tile b{font-family:var(--display);font-size:1.15rem;color:var(--ink)}
+.tile span{font-size:.78rem;font-weight:700;color:var(--muted)}
+.msg{position:absolute;inset:0;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 72%,transparent);z-index:5}
+.msg .card{max-width:80%}
+.note{color:var(--muted);font-size:.85rem;line-height:1.45;margin:0}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="cat" viewBox="0 0 64 64">
+    <path fill="currentColor" d="M10 8 L24 20 Q32 17 40 20 L54 8 Q57 22 54 32 Q57 52 32 56 Q7 52 10 32 Q7 22 10 8Z"/>
+    <path fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" d="M19 34 Q23 38 27 34 M37 34 Q41 38 45 34"/>
+    <path fill="var(--sun)" d="M29 42 h6 l-3 3z"/>
+    <path fill="none" stroke="var(--bg)" stroke-width="2" stroke-linecap="round" d="M32 45 v2 M14 43 h8 M42 43 h8"/>
+  </symbol>
+  <symbol id="x" viewBox="0 0 20 20"><path stroke="currentColor" stroke-width="3.2" stroke-linecap="round" d="M4 4 L16 16 M16 4 L4 16"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3 1.7-1.8 3.1-3 5.3-3 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></symbol>
+</svg>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>NapMap room</h1>
+      <div class="sub">Prototype: every area is a piece of furniture</div>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="modes" role="group" aria-label="Size" id="sizes">
+      <button class="chip" data-n="6">6×6</button><button class="chip" data-n="7">7×7</button>
+      <button class="chip" data-n="8">8×8</button><button class="chip" data-n="9">9×9</button>
+    </div>
+  </div>
+  <div class="bar">
+    <label>Shapes
+      <select id="rect" aria-label="Rectness">
+        <option value="1">Blocks (1.0)</option>
+        <option value="0.85">Mostly blocks (0.85)</option>
+        <option value="0.7" selected>Cozy (0.7)</option>
+        <option value="0.4">Loose (0.4)</option>
+      </select>
+    </label>
+    <button class="newbtn" id="new">New puzzle</button>
+  </div>
+
+  <div class="status">
+    <div class="hearts" id="hearts" aria-label="Lives left"></div>
+    <div class="label" id="label"></div>
+    <div class="label" id="count"></div>
+  </div>
+
+  <div class="room" id="room">
+    <div class="stage" id="stage">
+      <svg class="blocks" id="blocks" aria-hidden="true"></svg>
+      <div class="grid" id="grid" role="grid" aria-label="Puzzle board"></div>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="tile"><span>Rate</span><b id="rate">…</b><span id="rate2"></span></div>
+    <div class="tile"><span>Shapes</span><b id="shp">…</b><span id="shp2"></span></div>
+  </div>
+
+  <p class="note"><b>Tap</b> a square to cross it out, <b>double-tap</b> to place a cat. One cat per row, column and piece of furniture, and no two cats touch, even diagonally. A wrong cat costs a heart.</p>
+</div>
+
+<script>
+/* furniture.js expects the game's window.NapMap; give it a stub so it only registers the art. */
+window.NapMap={on(){},get puzzle(){return null}};
+</script>
+<script src="../js/generator.js"></script>
+<script src="./generator-shaped.js"></script>
+<script src="./difficulty.js"></script>
+<script src="../js/furniture.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),ART=window.NapMapArt.ART,G=window.ShapedGen,RATE=window.NapMapRate;
+const BEDS=['Tufty Puff Pillow','Knitty-Knot Blankets','Sisal Tippy Tower','Wiggle-Wicker Basket','Swingy Hammock',
+  'Very Good Box','Plushy Donut Bed','Tippy Teepee','Cloud-Fluff Bed','Velvet Fainting Couch'];
+/* which drawings suit which block shape */
+const TALL=[2,7],WIDE=[9,1,4],SQUARE=[0,3,5,6,8];
+const store={get(k,d){try{const v=localStorage.getItem('napmap-room:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('napmap-room:'+k,JSON.stringify(v))}catch(e){}}};
+let P,cells,lives,done,n=store.get('n',7),cellEls=[],blocks=[];
+
+/* Largest rectangle fully inside area g: the furniture's footprint. */
+function innerRect(g){let best=null,ba=-1;
+  for(let r0=0;r0<n;r0++)for(let c0=0;c0<n;c0++){if(P.reg[r0*n+c0]!==g)continue;
+    for(let r1=r0;r1<n&&P.reg[r1*n+c0]===g;r1++)for(let c1=c0;c1<n;c1++){let ok=true;
+      for(let r=r0;r<=r1;r++)if(P.reg[r*n+c1]!==g){ok=false;break}if(!ok)break;
+      const h=r1-r0+1,w=c1-c0+1,a=h*w*10-Math.abs(h-w);if(a>ba){ba=a;best={r0,c0,h,w}}}}
+  return best}
+/* Give tall blocks the cat tree / teepee, wide ones the couch / blankets / hammock, the rest cushions and boxes. */
+function assignArt(){const pools={tall:TALL.slice(),wide:WIDE.slice(),sq:SQUARE.slice()},used=new Set(),out=[];
+  const order=[...Array(n).keys()].sort((a,b)=>{const A=blocks[a],B=blocks[b];return Math.abs(Math.log(B.h/B.w))-Math.abs(Math.log(A.h/A.w))});
+  for(const g of order){const b=blocks[g],ar=b.w/b.h,kind=ar>=1.5?'wide':ar<=1/1.5?'tall':'sq';
+    const pick=[...pools[kind],...pools.sq,...pools.wide,...pools.tall].find(x=>!used.has(x));used.add(pick);out[g]=pick}
+  return out}
+
+/* Area outline: trace the area's boundary clockwise, inset it a little and round its corners. */
+const U=100,GAP=7,RC=20,RI=9;
+function outline(g){const E=new Map(),key=(x,y)=>x+','+y;
+  const add=(x1,y1,x2,y2)=>{const k=key(x1,y1);(E.get(k)||E.set(k,[]).get(k)).push([x2,y2])};
+  for(let k=0;k<n*n;k++){if(P.reg[k]!==g)continue;const r=k/n|0,c=k%n,same=(a,b)=>a>=0&&b>=0&&a<n&&b<n&&P.reg[a*n+b]===g;
+    if(!same(r-1,c))add(c,r,c+1,r);if(!same(r,c+1))add(c+1,r,c+1,r+1);if(!same(r+1,c))add(c+1,r+1,c,r+1);if(!same(r,c-1))add(c,r+1,c,r)}
+  let d='';
+  while(E.size){const [k0]=E.keys();let [x,y]=k0.split(',').map(Number);const pts=[[x,y]];
+    for(;;){const k=key(x,y),L=E.get(k);if(!L)break;const [nx,ny]=L.pop();if(!L.length)E.delete(k);x=nx;y=ny;
+      if(x===pts[0][0]&&y===pts[0][1])break;pts.push([x,y])}
+    /* drop collinear points */
+    const v=pts.filter((p,i)=>{const a=pts[(i-1+pts.length)%pts.length],b=pts[(i+1)%pts.length];return!((a[0]===p[0]&&p[0]===b[0])||(a[1]===p[1]&&p[1]===b[1]))});
+    const m=v.length,q=v.map((p,i)=>{const a=v[(i-1+m)%m],b=v[(i+1)%m];
+      const din=[Math.sign(p[0]-a[0]),Math.sign(p[1]-a[1])],dout=[Math.sign(b[0]-p[0]),Math.sign(b[1]-p[1])];
+      const nin=[-din[1],din[0]],nout=[-dout[1],dout[0]],cross=din[0]*dout[1]-din[1]*dout[0];
+      return{x:p[0]*U+GAP*(nin[0]+nout[0]),y:p[1]*U+GAP*(nin[1]+nout[1]),r:cross>0?RC:RI}});
+    for(let i=0;i<m;i++){const p=q[i],a=q[(i-1+m)%m],b=q[(i+1)%m];
+      const toward=(s,t,r)=>{const dx=t.x-s.x,dy=t.y-s.y,l=Math.hypot(dx,dy)||1,rr=Math.min(r,l/2);return[s.x+dx/l*rr,s.y+dy/l*rr]};
+      const [x1,y1]=toward(p,a,p.r),[x2,y2]=toward(p,b,p.r);
+      d+=(i?'L':'M')+x1.toFixed(1)+' '+y1.toFixed(1)+'Q'+p.x.toFixed(1)+' '+p.y.toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1)}
+    d+='Z'}
+  return d}
+
+function newPuzzle(seed){n=+n;const rectness=+$('rect').value;if(seed==null)seed=(Math.random()*2**31)|0;
+  const t0=performance.now();P=G.generate(n,seed,{rectness});const ms=performance.now()-t0;P.seed=seed;
+  blocks=[];for(let g=0;g<n;g++)blocks[g]=innerRect(g);P.art=assignArt();
+  cells=Array(n*n).fill(0);lives=3;done=false;store.set('n',n);store.set('rect',$('rect').value);
+  drawRoom();buildGrid();render();renderHearts();
+  document.querySelectorAll('#sizes .chip').forEach(c=>c.setAttribute('aria-pressed',+c.dataset.n===n));
+  $('label').textContent=`${n}×${n} · #${(seed%100000).toString().padStart(5,'0')}`;
+  const R=RATE.rate(P),word={single:'Gentle',line:'Easy','group':'Medium','what-if':'Tricky',guess:'Needs guessing'}[R.name];
+  $('rate').textContent=word;$('rate2').textContent=`hardest rule: ${R.name} · ${R.steps} steps`;
+  let rects=0,off=0;for(let g=0;g<n;g++){const s=G.shapeOf(n,P.reg,g);if(s.rect)rects++;off+=s.defect}
+  $('shp').textContent=`${rects}/${n} blocks`;$('shp2').textContent=`${off} cell${off===1?'':'s'} off-rectangle · built in ${Math.round(ms)} ms`}
+
+function drawRoom(){const W=n*U,svg=$('blocks');svg.setAttribute('viewBox',`0 0 ${W} ${W}`);let h='<defs>';
+  const paths=[];for(let g=0;g<n;g++){paths[g]=outline(g);h+=`<clipPath id="cl${g}"><path d="${paths[g]}"/></clipPath>`}h+='</defs>';
+  for(let g=0;g<n;g++){const bed=P.art[g],col=`color-mix(in srgb,var(--r${bed}) var(--block-mix),transparent)`,b=blocks[g],pad=12;
+    h+=`<path class="blk-shadow" d="${paths[g]}" transform="translate(0 6)"/>`;
+    h+=`<path class="blk" d="${paths[g]}" style="fill:${col}"><title>${BEDS[bed]}</title></path>`;
+    h+=`<g clip-path="url(#cl${g})"><svg class="furn-art" x="${b.c0*U+pad}" y="${b.r0*U+pad}" width="${b.w*U-2*pad}" height="${b.h*U-2*pad}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax meet" overflow="visible">${ART[bed]}</svg></g>`}
+  svg.innerHTML=h}
+function buildGrid(){const gr=$('grid');gr.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;gr.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
+  gr.innerHTML='';cellEls=[];
+  for(let k=0;k<n*n;k++){const e=document.createElement('div'),r=k/n|0,c=k%n;e.className='c';e.dataset.k=k;e.setAttribute('role','gridcell');e.tabIndex=k?-1:0;
+    if(c===n-1)e.style.borderRight='0';if(r===n-1)e.style.borderBottom='0';gr.appendChild(e);cellEls.push(e)}}
+function render(){cellEls.forEach((e,k)=>{const s=cells[k];if(e.dataset.s==s)return;e.dataset.s=s;
+    e.className='c'+(s===2?' cat':'')+(s===3?' wrong':'');
+    e.innerHTML=s===2?'<svg><use href="#cat"/></svg>':(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';
+    e.setAttribute('aria-label',`Row ${(k/n|0)+1}, column ${k%n+1}, ${BEDS[P.art[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
+  $('count').textContent=`${cells.filter(s=>s===2).length}/${n} cats`}
+function renderHearts(){$('hearts').innerHTML=[0,1,2].map(i=>`<svg class="${i>=lives?'lost':''}"><use href="#heart"/></svg>`).join('')}
+const isSol=k=>P.sol[k/n|0]===k%n;
+function peers(k){const r=k/n|0,c=k%n,g=P.reg[k],o=[];for(let q=0;q<n*n;q++){const a=q/n|0,b=q%n;
+  if(q!==k&&(a===r||b===c||P.reg[q]===g||(Math.abs(a-r)<=1&&Math.abs(b-c)<=1)))o.push(q)}return o}
+function placeCat(k){if(done||cells[k]>=2)return;
+  if(isSol(k)){cells[k]=2;peers(k).forEach(q=>{if(cells[q]===0)cells[q]=1});render();
+    if(cells.filter(s=>s===2).length===n){done=true;card(`<h2>Everybody's napping!</h2><p>${3-lives?`${3-lives} heart${3-lives>1?'s':''} lost`:'Not a single heart lost'}</p><div class="row"><button class="btn primary" data-act="new">Next puzzle</button></div>`)}}
+  else{cells[k]=3;lives--;renderHearts();render();const e=cellEls[k];e.classList.add('shake');setTimeout(()=>e.classList.remove('shake'),400);
+    if(lives<=0){done=true;card(`<h2>Out of hearts</h2><p>Three cats on the wrong furniture.</p><div class="row"><button class="btn primary" data-act="reveal">Show solution</button><button class="btn" data-act="new">New puzzle</button></div>`)}}}
+function card(html){const m=document.createElement('div');m.className='msg';m.innerHTML=`<div class="card">${html}</div>`;$('room').appendChild(m);
+  m.addEventListener('click',e=>{const a=e.target.closest('[data-act]')?.dataset.act;if(!a)return;m.remove();
+    if(a==='new')newPuzzle();else{cells=cells.map((s,k)=>isSol(k)?2:s===3?3:1);render()}})}
+let last={k:-1,t:0,prev:null};
+$('grid').addEventListener('pointerup',e=>{if(done)return;const el=e.target.closest('.c');if(!el)return;const k=+el.dataset.k,now=Date.now();
+  if(last.k===k&&now-last.t<350){if(last.prev!=null)cells[k]=last.prev;last={k:-1,t:0,prev:null};placeCat(k);render();return}
+  const prev=cells[k];if(prev<2){cells[k]=prev?0:1;render();last={k,t:now,prev}}else last={k,t:now,prev:null}});
+$('grid').addEventListener('keydown',e=>{const el=e.target.closest('.c');if(!el)return;const k=+el.dataset.k;let q=null;
+  if(e.key==='ArrowRight')q=k%n<n-1?k+1:k;else if(e.key==='ArrowLeft')q=k%n?k-1:k;else if(e.key==='ArrowDown')q=k+n<n*n?k+n:k;else if(e.key==='ArrowUp')q=k>=n?k-n:k;
+  else if(e.key===' '||e.key==='x'){e.preventDefault();if(!done&&cells[k]<2){cells[k]=cells[k]?0:1;render()}}
+  else if(e.key==='Enter'||e.key==='c'){e.preventDefault();placeCat(k)}
+  if(q!=null){e.preventDefault();el.tabIndex=-1;cellEls[q].tabIndex=0;cellEls[q].focus()}});
+document.querySelectorAll('#sizes .chip').forEach(c=>c.onclick=()=>{n=+c.dataset.n;clearMsg();newPuzzle()});
+const clearMsg=()=>document.querySelectorAll('.msg').forEach(m=>m.remove());
+$('new').onclick=()=>{clearMsg();newPuzzle()};
+$('rect').value=store.get('rect','0.7');if(!$('rect').value)$('rect').value='0.7';
+$('rect').onchange=()=>{clearMsg();newPuzzle()};
+const qs=new URLSearchParams(location.search);if(qs.get('n'))n=+qs.get('n');if(qs.get('r'))$('rect').value=qs.get('r');
+if(qs.get('theme'))document.documentElement.dataset.theme=qs.get('theme');
+window.__room={get puzzle(){return P},get cells(){return cells}}; // for tests
+newPuzzle(qs.get('seed')!=null?+qs.get('seed'):undefined);
+})();
+</script>
+</body>
+</html>
