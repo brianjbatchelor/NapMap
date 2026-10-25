@@ -1,10 +1,10 @@
 /* Offline support: precache the app shell, serve cache-first, refresh in the background.
    Bump VERSION whenever any shell file changes. */
-const VERSION = 'napmap-v11';
-const SHELL = ['./', 'index.html', 'css/style.css', 'css/furniture.css', 'js/furniture.js', 'js/generator.js', 'js/game.js',
+const VERSION = 'napmap-v12';
+const SHELL = ['./', 'index.html', 'css/style.css', 'css/furniture.css', 'js/furniture.js', 'js/generator.js', 'js/generator-shaped.js', 'js/game.js',
   'css/archive.css', 'js/archive.js',
   'css/polish.css', 'js/polish.js', 'js/gen-worker.js',
-  'css/leaderboard.css', 'css/cats.css', 'css/difficulty.css', 'js/difficulty.js', 'js/config.js', 'js/leaderboard.js', 'js/cats.js',
+  'css/leaderboard.css', 'css/cats.css', 'css/difficulty.css', 'css/room.css', 'js/difficulty.js', 'js/config.js', 'js/leaderboard.js', 'js/cats.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {

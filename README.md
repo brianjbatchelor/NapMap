@@ -9,7 +9,9 @@ Play: https://brianjbatchelor.github.io/NapMap/
 ## Layout
 - `index.html`: page shell
 - `css/style.css`: styles and theme tokens (light and dark)
-- `js/generator.js`: puzzle generator and solver (pure, also runs in Node)
+- `js/generator.js`: puzzle generator and solver for Classic boards (pure, also runs in Node)
+- `js/generator-shaped.js`: furniture-shaped areas for Cozy (rectness 0.7, the default) and Boxy (1.0) boards; picks each area's furniture by block shape
+- `css/room.css`: the room look (wallpaper, floor, rounded blocks) for Cozy and Boxy; Daily is always Cozy
 - `js/game.js`: game state, rendering and input; exposes `window.NapMap` (alias `window.NapMap`) with an event bus
 - `sw.js`, `manifest.webmanifest`: offline support and home-screen install
 

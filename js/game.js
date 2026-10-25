@@ -22,39 +22,62 @@ function newPuzzle(m,seed,opts={}){mode=m;const n=m==='daily'?8:+m;let dateKey=n
   if(m==='daily'){dateKey=opts.dateKey||today();seed=dailySeed(dateKey)}
   else if(seed==null)seed=(Math.random()*2**31)|0;
   const my=++genToken,wrap=document.querySelector('.board-wrap');
-  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;reset();store.set('mode',m);emit('newPuzzle',info())};
-  /* --- difficulty: rated generation (js/difficulty.js), target per mode --- */
-  const target=DIFF.TARGETS[m],build=()=>DIFF.generateRated(n,seed,target);
-  if(n<9||!P||!genWorker){use(build());return}
-  /* 9x9 and 10x10 rated boards can take a second or more, so build them off the main thread */
+  /* --- styles: Daily is always Cozy; other modes use the player's board style (opts.style overrides) --- */
+  const style=DIFF.styleFor(m,opts.style||boardStyle);
+  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;P.style=style;reset();store.set('mode',m);emit('newPuzzle',info())};
+  /* --- end styles --- */
+  /* --- difficulty: rated generation (js/difficulty.js), target per mode and style --- */
+  const target=DIFF.targetFor(m,style),build=()=>DIFF.generateRated(n,seed,target,style);
+  if(!slowBuild(n,style)||!P||!genWorker){use(build());return}
+  /* slow combinations (9x9 and 10x10 in every style) build off the main thread; the first page load stays synchronous */
   /* --- end difficulty --- */
   wrap.setAttribute('aria-busy','true');
-  genAsync(n,seed,target).catch(build).then(use).finally(()=>{if(my===genToken)wrap.removeAttribute('aria-busy')})}
+  genAsync(n,seed,target,style).catch(build).then(use).finally(()=>{if(my===genToken)wrap.removeAttribute('aria-busy')})}
+/* --- styles: board style choice (Cozy room, Boxy room, Classic), remembered; default Cozy --- */
+const STYLE_NAMES={cozy:'Cozy',boxy:'Boxy',classic:'Classic'};
+let boardStyle=DIFF.styleFor(null,store.get('style',DIFF.DEFAULT_STYLE));
+/* median rated build time in Node (ms), 100 seeds each: under ~150ms builds inline, otherwise in the worker.
+   6x6-8x8: 1-17ms in every style; 9x9: classic ~50, cozy ~100, boxy ~140 (p95 0.6-1s); 10x10: 0.4-1.2s */
+const slowBuild=(n,style)=>n>=9;
+function setStyle(s){s=DIFF.styleFor(null,s);boardStyle=s;store.set('style',s);renderStylePicker();
+  if(mode!=='daily'&&P&&P.style!==s)newPuzzle(mode)}
+function renderStylePicker(){document.querySelectorAll('.seg-btn[data-style]').forEach(b=>b.setAttribute('aria-checked',b.dataset.style===boardStyle));
+  const note=$('style-note');if(note)note.textContent=mode==='daily'&&boardStyle!=='cozy'?'Daily is always Cozy':''}
+/* --- end styles --- */
 let genToken=0,genReq=0;
 const genWorker=(()=>{try{return typeof Worker!=='undefined'&&location.protocol!=='file:'?new Worker('js/gen-worker.js'):null}catch(e){return null}})();
-const genAsync=(n,seed,target)=>new Promise((res,rej)=>{const id=++genReq;
+const genAsync=(n,seed,target,style)=>new Promise((res,rej)=>{const id=++genReq;
   const h=e=>{if(e.data.id!==id)return;genWorker.removeEventListener('message',h);e.data.ok?res(e.data.puzzle):rej(new Error(e.data.error))};
-  genWorker.addEventListener('message',h);genWorker.postMessage({id,n,seed,target})});
+  genWorker.addEventListener('message',h);genWorker.postMessage({id,n,seed,target,style})});
 function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=null;done=false;clearInterval(timerId);hideHint();
   $('overlay').hidden=true;render();renderHearts();tick()}
 
 /* ---------- render ---------- */
 function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;b.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
-  if(cellEls.length!==n*n||b.dataset.seed!=P.seed){b.innerHTML='';cellEls=[];b.dataset.seed=P.seed;
+  /* --- styles: room look for cozy/boxy boards (css/room.css, blocks drawn by js/furniture.js) --- */
+  const room=P.style==='cozy'||P.style==='boxy';
+  /* --- end styles --- */
+  if(cellEls.length!==n*n||b.dataset.seed!=P.seed||b.dataset.style!==P.style){b.innerHTML='';cellEls=[];b.dataset.seed=P.seed;
+    b.dataset.style=P.style;b.classList.toggle('room',room);
     for(let k=0;k<n*n;k++){const r=k/n|0,c=k%n,g=P.reg[k],e=document.createElement('div');
       e.className='cell';e.dataset.k=k;e.dataset.bed=P.colors[g];e.setAttribute('role','gridcell');e.tabIndex=k===0?0:-1;
       const up=r===0||P.reg[k-n]!==g,dn=r===n-1||P.reg[k+n]!==g,lf=c===0||P.reg[k-1]!==g,rt=c===n-1||P.reg[k+1]!==g,R='22%';
       e.style.borderRadius=`${up&&lf?R:0} ${up&&rt?R:0} ${dn&&rt?R:0} ${dn&&lf?R:0}`;e.title=BEDS[P.colors[g]];
       e.style.setProperty('--et',+up);e.style.setProperty('--eb',+dn);e.style.setProperty('--el',+lf);e.style.setProperty('--er',+rt);
-      const side=(edge,outer)=>outer?'0px solid transparent':edge?'1.5px solid var(--line)':'.5px solid var(--seam)';
+      /* --- styles: the room look (cozy/boxy) draws its blocks, edges and seams in js/furniture.js, so cells get no borders --- */
+      const side=(edge,outer)=>outer||room?'0px solid transparent':edge?'1.5px solid var(--line)':'.5px solid var(--seam)';
       e.style.borderTop=side(up,r===0);e.style.borderBottom=side(dn,r===n-1);e.style.borderLeft=side(lf,c===0);e.style.borderRight=side(rt,c===n-1);
       b.appendChild(e);cellEls.push(e)}}
   cellEls.forEach((e,k)=>{const s=cells[k],cls='cell'+(s===2?' cat':'')+(s===3?' wrong':'');
     if(e.dataset.s!=s){e.dataset.s=s;e.className=cls;
       e.innerHTML=s===2?`<svg class="${catCoat(k)}" viewBox="0 0 64 64"><use href="#cat"/></svg>`:(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
     const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${BEDS[P.colors[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
-  const lab=mode==='daily'?(P.dateKey===today()?'Daily · ':'Past daily · ')+dateOf(P.dateKey).toLocaleDateString(undefined,{month:'short',day:'numeric'}):`${P.n}×${P.n} · #${(P.seed%100000).toString().padStart(5,'0')}`;
+  /* --- styles: the style leads the label, e.g. "Cozy · 8×8 · ★★★☆"; daily boards are always Cozy --- */
+  const lab=mode==='daily'?(P.dateKey===today()?'Daily · ':'Past daily · ')+dateOf(P.dateKey).toLocaleDateString(undefined,{month:'short',day:'numeric'}):`${STYLE_NAMES[P.style]||''} · ${P.n}×${P.n}`;
   $('label').textContent=lab;
+  $('label').title=mode==='daily'?'Daily boards are always Cozy, so everyone plays the same one':`${STYLE_NAMES[P.style]} board · puzzle #${(P.seed%100000).toString().padStart(5,'0')}`;
+  renderStylePicker();
+  /* --- end styles --- */
   /* --- difficulty: stars after the label --- */
   const lv=P.rating&&Math.min(4,P.rating.level);
   if(lv){const s=document.createElement('span');s.className='stars';s.textContent=' · '+'★'.repeat(lv)+'☆'.repeat(4-lv);
@@ -152,12 +175,15 @@ $('hint').onclick=hint;
 $('restart').onclick=reset;
 $('new').onclick=()=>newPuzzle(mode==='daily'?'8':mode);
 document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.onclick=()=>newPuzzle(ch.dataset.mode));
+/* --- styles --- */
+document.querySelectorAll('.seg-btn[data-style]').forEach(b=>b.onclick=()=>setStyle(b.dataset.style));
+/* --- end styles --- */
 try{$('autox').checked=store.get('autox',true)}catch(e){}
 $('autox').onchange=()=>store.set('autox',$('autox').checked);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&startT){elapsed+=Date.now()-startT;startT=null;clearInterval(timerId);startT=null;window._paused=true}
   else if(!document.hidden&&window._paused&&!done){window._paused=false;startT=Date.now();timerId=setInterval(tick,250)}});
 
-window.NapMap={BEDS,on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,
-  get puzzle(){return P},get mode(){return mode},get done(){return done}};
+window.NapMap={BEDS,on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,setStyle,
+  get puzzle(){return P},get mode(){return mode},get done(){return done},get style(){return boardStyle}};
 newPuzzle(store.get('mode','daily'));
 })();

@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="css/leaderboard.css">
 <link rel="stylesheet" href="css/cats.css">
 <link rel="stylesheet" href="css/difficulty.css">
+<link rel="stylesheet" href="css/room.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -92,6 +93,16 @@
     <button type="button" class="arc-chip" id="archive-btn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Archive</button>
   </div>
 
+  <div class="styles-row">
+    <span class="seg-label" id="style-label">Board</span>
+    <div class="seg" role="radiogroup" aria-labelledby="style-label">
+      <button type="button" class="seg-btn" role="radio" data-style="cozy" aria-checked="true" title="Cozy room: furniture-shaped beds with a little give">Cozy</button>
+      <button type="button" class="seg-btn" role="radio" data-style="boxy" aria-checked="false" title="Boxy room: beds as rectangular as the puzzle allows">Boxy</button>
+      <button type="button" class="seg-btn" role="radio" data-style="classic" aria-checked="false" title="Classic: free-form quilted beds">Classic</button>
+    </div>
+    <span class="seg-note" id="style-note"></span>
+  </div>
+
   <div class="status">
     <div class="hearts" id="hearts" aria-label="Lives left"></div>
     <div class="label" id="label"></div>
@@ -137,6 +148,7 @@
 </div>
 
 <script src="js/generator.js"></script>
+<script src="js/generator-shaped.js"></script>
 <script src="js/difficulty.js"></script>
 <script src="js/game.js"></script>
 <script src="js/furniture.js"></script>

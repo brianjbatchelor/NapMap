@@ -1,0 +1,58 @@
+/* NapMap board styles: the "room" look for Cozy and Boxy boards (.board.room, set by js/game.js).
+   Behind the board: a striped wallpaper upper part, a skirting board and a wood floor lower part. js/furniture.js
+   draws each area as one rounded block in its bed color (.room-layer), with padded edges and stitching on the
+   block's own edge, and stands the furniture on the bottom of the block's largest rectangle. Cells stay transparent
+   on top for input, X marks and cats. Classic boards keep the look in style.css and furniture.css. */
+:root{--wall:#F4E9DC;--wall2:#EFE0CE;--floor:#DDBA92;--floor2:#CFA77A;--skirt:#BC9168;--block-mix:92%;
+  --rm-shade:rgba(70,40,12,.2);--rm-edge:rgba(31,42,68,.7)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--wall:#283048;--wall2:#242B42;--floor:#3A3242;--floor2:#322B3A;
+  --skirt:#4A3F55;--block-mix:94%;--rm-shade:rgba(0,0,0,.38);--rm-edge:rgba(6,9,18,.9)}}
+:root[data-theme="dark"]{--wall:#283048;--wall2:#242B42;--floor:#3A3242;--floor2:#322B3A;
+  --skirt:#4A3F55;--block-mix:94%;--rm-shade:rgba(0,0,0,.38);--rm-edge:rgba(6,9,18,.9)}
+
+/* the room: wall above the 62% line, skirting, floorboards below */
+.board.room{background:
+  linear-gradient(to bottom,transparent 60.5%,var(--skirt) 60.5%,var(--skirt) 63%,rgba(0,0,0,.12) 63%,transparent 64.5%),
+  repeating-linear-gradient(90deg,var(--wall) 0 14px,var(--wall2) 14px 28px) top/100% 61% no-repeat,
+  repeating-linear-gradient(0deg,var(--floor) 0 17px,var(--floor2) 17px 18px) bottom/100% 39% no-repeat,
+  var(--floor)}
+
+/* cells: transparent hit targets; the block underneath carries the color, padding and stitching */
+.board.room .cell[data-bed]{background:none;box-shadow:none;border-radius:0!important}
+.board.room .cell[data-bed]::before{display:none}
+
+.room-layer{position:absolute;inset:0;z-index:0;pointer-events:none}
+.room-layer svg{display:block;width:100%;height:100%;overflow:visible}
+.rm-fill{fill:color-mix(in srgb,var(--bed) var(--block-mix),transparent)}
+.rm-shadow{fill:var(--rm-shade)}
+.rm-edge{fill:none;stroke:var(--rm-edge);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.rm-seam{fill:none;stroke:var(--seam);stroke-width:.5px;vector-effect:non-scaling-stroke}
+.rm-stitch{fill:none;stroke:var(--stitch);stroke-width:1.5px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.rm-hi{fill:rgba(255,255,255,.38)}.rm-hi2{fill:rgba(255,255,255,.2)}
+.rm-lo{fill:rgba(0,0,0,.13)}.rm-lo2{fill:rgba(0,0,0,.07)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rm-hi{fill:rgba(255,255,255,.2)}:root:not([data-theme="light"]) .rm-hi2{fill:rgba(255,255,255,.1)}}
+:root[data-theme="dark"] .rm-hi{fill:rgba(255,255,255,.2)}:root[data-theme="dark"] .rm-hi2{fill:rgba(255,255,255,.1)}
+.rm-blk[data-bed="0"]{--bed:var(--r0)}.rm-blk[data-bed="1"]{--bed:var(--r1)}.rm-blk[data-bed="2"]{--bed:var(--r2)}
+.rm-blk[data-bed="3"]{--bed:var(--r3)}.rm-blk[data-bed="4"]{--bed:var(--r4)}.rm-blk[data-bed="5"]{--bed:var(--r5)}
+.rm-blk[data-bed="6"]{--bed:var(--r6)}.rm-blk[data-bed="7"]{--bed:var(--r7)}.rm-blk[data-bed="8"]{--bed:var(--r8)}
+.rm-blk[data-bed="9"]{--bed:var(--r9)}
+
+/* furniture stands on the block's floor: full box, bottom-anchored by preserveAspectRatio xMidYMax meet */
+.board.room .furn svg{inset:0;width:100%;height:100%;opacity:.9}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .board.room .furn svg{opacity:.78}}
+:root[data-theme="dark"] .board.room .furn svg{opacity:.78}
+
+/* X marks get a slightly stronger halo over the busier room art */
+.board.room .cell .x{opacity:.85}
+
+/* ---------- board style picker (segmented control under the mode chips) ---------- */
+.styles-row{display:flex;align-items:center;gap:8px;margin-top:-6px;flex-wrap:wrap}
+.seg-label{font-weight:800;font-size:.8rem;color:var(--muted)}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:999px;background:var(--surface);padding:2px;gap:2px}
+.seg-btn{font:inherit;font-weight:800;font-size:.8rem;border:0;background:transparent;color:var(--ink);border-radius:999px;
+  padding:4px 11px;cursor:pointer;line-height:1.2}
+.seg-btn[aria-checked="true"]{background:var(--ink);color:var(--bg)}
+.seg-btn:focus-visible{outline:3px solid var(--sun);outline-offset:1px}
+.seg-btn:active{transform:translateY(1px)}
+.seg-note{font-weight:700;font-size:.78rem;color:var(--muted)}
+.seg-note:empty{display:none}

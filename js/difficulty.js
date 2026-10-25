@@ -8,8 +8,9 @@
    API:
      rate(puzzle)                    -> {level, steps, ruleCounts}
      nextStep(puzzle, state, {names}) -> next simplest deduction from a player's board (see nextStep below)
-     generateRated(n, seed, target)  -> SunGen.generate output plus {rating, tries}; target {min, max, minSteps, tries}
-     TARGETS                         -> target per game mode
+     generateRated(n, seed, target, style?) -> generator output plus {rating, tries}; target {min, max, minSteps, tries};
+                                       style 'classic' (default), 'cozy', 'boxy' or a (n, seed) => puzzle function
+     TARGETS                         -> target per game mode; targetFor(mode, style) adds any per-style override
    Puzzle: {n, reg, sol?}. State: per cell 0 empty, 1 crossed, 2 cat, 3 wrong guess (counts as crossed). */
 (function(root){
 const OPEN=0,X=1,CAT=2;
@@ -158,17 +159,34 @@ function nextStep(P,state,opts={}){const names=opts.names,C=context(P),st=toCand
 /* ---------- targeted generation ---------- */
 const TARGETS={daily:{min:2,max:3},6:{min:1,max:2},7:{min:2,max:3},8:{min:3,max:4},9:{min:4,max:4},10:{min:4,max:4,minSteps:16}};
 const gen=()=>root.SunGen||(typeof require!=='undefined'?require('./generator.js'):null);
+/* --- styles: board styles and their generators (js/generator-shaped.js for cozy and boxy) --- */
+/* the production module (it has STYLES); experiments/generator-shaped.js sets the same global without it */
+const shaped=()=>root.ShapedGen&&root.ShapedGen.STYLES?root.ShapedGen:(typeof require!=='undefined'?require('./generator-shaped.js'):null);
+const STYLES=['cozy','boxy','classic'];
+const STYLE_GEN={classic:(n,s)=>gen().generate(n,s),
+  cozy:(n,s)=>shaped().generate(n,s,{rectness:shaped().STYLES.cozy}),
+  boxy:(n,s)=>shaped().generate(n,s,{rectness:shaped().STYLES.boxy})};
+/* the style a puzzle is built in: Daily is always cozy so everyone shares one board (the friends leaderboard
+   compares times on it); every other mode uses the player's choice, cozy by default */
+const DEFAULT_STYLE='cozy';
+const styleFor=(mode,chosen)=>mode==='daily'?'cozy':STYLES.includes(chosen)?chosen:DEFAULT_STYLE;
+/* per-style target overrides (none needed so far: every style hits the mode targets, see tests/styles.test.js) */
+const STYLE_TARGETS={cozy:{},boxy:{},classic:{}};
+const targetFor=(mode,style)=>Object.assign({},TARGETS[mode],(STYLE_TARGETS[style]||{})[mode]);
+const genOf=style=>typeof style==='function'?style:STYLE_GEN[style||'classic']||STYLE_GEN.classic;
+/* --- end styles --- */
 const derive=(seed,i)=>i===0?seed>>>0:((Math.imul((seed>>>0)^Math.imul(i,0x9E3779B1),0x85EBCA6B)^(i*0xC2B2AE35))>>>0)||1;
 /* tries derived seeds in a fixed order until the rating fits; after `tries` (default 300) takes the closest one seen.
-   A puzzle that needs guessing (level 5) is never returned. */
-function generateRated(n,seed,target={}){const G=gen(),min=target.min||1,max=target.max||4,minSteps=target.minSteps||0,cap=target.tries||300;
+   A puzzle that needs guessing (level 5) is never returned.
+   style: 'classic' (default, js/generator.js), 'cozy' or 'boxy' (js/generator-shaped.js), or any (n, seed) => puzzle. */
+function generateRated(n,seed,target={},style){const make=genOf(style),min=target.min||1,max=target.max||4,minSteps=target.minSteps||0,cap=target.tries||300;
   let best=null,bestD=Infinity;
-  for(let i=0;;i++){const p=G.generate(n,derive(seed,i)),r=rate(p);
+  for(let i=0;;i++){const p=make(n,derive(seed,i)),r=rate(p);
     if(r.level<=4){const d=(r.level<min?min-r.level:r.level>max?r.level-max:0)*100+Math.max(0,minSteps-r.steps);
       if(d<bestD){bestD=d;best=Object.assign(p,{rating:r,tries:i+1})}
       if(d===0||i+1>=cap)return best}}}
 
-const api={rate,nextStep,generateRated,TARGETS,derive,
+const api={rate,nextStep,generateRated,TARGETS,derive,STYLES,STYLE_GEN,STYLE_TARGETS,DEFAULT_STYLE,styleFor,targetFor,
   _internal:{context,toCandidates,findPeers,findOnly,findLine,findSqueeze,findGroup}}; /* _internal: for tests */
 root.NapMapDifficulty=api;
 if(typeof module!=='undefined')module.exports=api;

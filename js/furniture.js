@@ -85,14 +85,70 @@ function bestRect(P,g){const n=P.n;let best=null,bs=-1;
       for(let c1=c0;c1<n;c1++){let ok=true;for(let r=r0;r<=r1&&ok;r++)if(P.reg[r*n+c1]!==g)ok=false;if(!ok)break;
         const h=r1-r0+1,w=c1-c0+1,sc=Math.min(h,w)*100+h*w;if(sc>bs){bs=sc;best={r0,c0,h,w}}}}}
   return best}
+/* --- styles: room look for Cozy and Boxy boards (css/room.css) ---
+   Each area is one rounded block (an SVG path traced around the area, inset from the cell edges so the wall and
+   floor show between blocks), with the padded edges and stitching of the classic look redrawn on the block's own
+   edge. The furniture stands on the bottom of the area's largest inner rectangle (xMidYMax meet), still inside a
+   clipped .furn box. Coordinates: 100 units per cell. */
+const U=100,GAP=8,RC=20,RI=9,STITCH=19,PAD=13;
+/* Outline of area g, traced clockwise, inset by `inset` units, convex corners rounded by rc and concave ones by ri */
+function outline(P,g,inset=GAP,rc=RC,ri=RI){const n=P.n,E=new Map(),key=(x,y)=>x+','+y;
+  const add=(x1,y1,x2,y2)=>{const k=key(x1,y1);(E.get(k)||E.set(k,[]).get(k)).push([x2,y2])};
+  const same=(a,b)=>a>=0&&b>=0&&a<n&&b<n&&P.reg[a*n+b]===g;
+  for(let k=0;k<n*n;k++){if(P.reg[k]!==g)continue;const r=k/n|0,c=k%n;
+    if(!same(r-1,c))add(c,r,c+1,r);if(!same(r,c+1))add(c+1,r,c+1,r+1);if(!same(r+1,c))add(c+1,r+1,c,r+1);if(!same(r,c-1))add(c,r+1,c,r)}
+  let d='';
+  while(E.size){const [k0]=E.keys();let [x,y]=k0.split(',').map(Number);const pts=[[x,y]];
+    for(;;){const k=key(x,y),L=E.get(k);if(!L)break;const [nx,ny]=L.pop();if(!L.length)E.delete(k);x=nx;y=ny;
+      if(x===pts[0][0]&&y===pts[0][1])break;pts.push([x,y])}
+    const v=pts.filter((p,i)=>{const a=pts[(i-1+pts.length)%pts.length],b=pts[(i+1)%pts.length];return!((a[0]===p[0]&&p[0]===b[0])||(a[1]===p[1]&&p[1]===b[1]))});
+    const m=v.length,q=v.map((p,i)=>{const a=v[(i-1+m)%m],b=v[(i+1)%m];
+      const din=[Math.sign(p[0]-a[0]),Math.sign(p[1]-a[1])],dout=[Math.sign(b[0]-p[0]),Math.sign(b[1]-p[1])];
+      const nin=[-din[1],din[0]],nout=[-dout[1],dout[0]],cross=din[0]*dout[1]-din[1]*dout[0];
+      return{x:p[0]*U+inset*(nin[0]+nout[0]),y:p[1]*U+inset*(nin[1]+nout[1]),r:cross>0?rc:ri}});
+    for(let i=0;i<m;i++){const p=q[i],a=q[(i-1+m)%m],b=q[(i+1)%m];
+      const toward=(s,t,r)=>{const dx=t.x-s.x,dy=t.y-s.y,l=Math.hypot(dx,dy)||1,rr=Math.min(r,l/2);return[s.x+dx/l*rr,s.y+dy/l*rr]};
+      const [x1,y1]=toward(p,a,p.r),[x2,y2]=toward(p,b,p.r);
+      d+=(i?'L':'M')+x1.toFixed(1)+' '+y1.toFixed(1)+'Q'+p.x.toFixed(1)+' '+p.y.toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1)}
+    d+='Z'}
+  return d}
+/* Largest rectangle fully inside area g, the block the room furniture stands in (same rule the shaped generator
+   uses to pick each area's furniture by shape) */
+const innerRect=(P,g)=>window.ShapedGen?window.ShapedGen.innerRect(P.n,P.reg,g):bestRect(P,g);
+const isRoom=P=>P.style==='cozy'||P.style==='boxy';
+let uid=0;
+function drawRoom(P,board){const n=P.n,W=n*U,id='rm'+(++uid);
+  /* thin seams between the cells of a block, like the quilting of the classic look */
+  let grid='';for(let i=1;i<n;i++)grid+=`M${i*U} 0V${W}M0 ${i*U}H${W}`;
+  let defs='',body='';
+  for(let g=0;g<n;g++){const d=outline(P,g),st=outline(P,g,STITCH,RC-6,Math.max(3,RI-6)),bed=P.colors[g],c=`${id}c${g}`;
+    /* padded edges: thin bands along the block's own edges (light on top and left, shade on the bottom and right) */
+    const band=(dx,dy)=>`<mask id="${c}${dx}${dy}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${W}"><path d="${d}" fill="#fff"/><path d="${d}" transform="translate(${dx} ${dy})" fill="#000"/></mask>`;
+    defs+=`<clipPath id="${c}"><path d="${d}"/></clipPath>`+band(0,6)+band(0,-8)+band(5,0)+band(-5,0);
+    body+=`<g class="rm-blk" data-bed="${bed}"><path class="rm-shadow" d="${d}" transform="translate(0 6)"/>`
+      +`<path class="rm-fill" d="${d}"/>`
+      +`<g clip-path="url(#${c})"><path class="rm-seam" d="${grid}"/></g>`
+      +`<path class="rm-hi" d="${d}" mask="url(#${c}06)"/><path class="rm-lo" d="${d}" mask="url(#${c}0-8)"/>`
+      +`<path class="rm-hi2" d="${d}" mask="url(#${c}50)"/><path class="rm-lo2" d="${d}" mask="url(#${c}-50)"/>`
+      +`<path class="rm-stitch" d="${st}"/><path class="rm-edge" d="${d}"/></g>`}
+  const layer=document.createElement('div');layer.className='room-layer';layer.setAttribute('aria-hidden','true');
+  layer.innerHTML=`<svg viewBox="0 0 ${W} ${W}" preserveAspectRatio="none"><defs>${defs}</defs>${body}</svg>`;
+  board.insertBefore(layer,board.firstChild)}
+/* --- end styles --- */
 function draw(){const P=S.puzzle,board=document.getElementById('board');if(!P||!board)return;
-  board.querySelectorAll('.furn').forEach(e=>e.remove());const n=P.n;
-  for(let g=0;g<n;g++){const b=bestRect(P,g),bed=P.colors[g];if(!b)continue;const d=document.createElement('div');
+  board.querySelectorAll('.furn,.room-layer').forEach(e=>e.remove());const n=P.n;
+  /* --- styles --- */
+  const room=isRoom(P);if(room)drawRoom(P,board);
+  /* --- end styles --- */
+  for(let g=0;g<n;g++){const b=room?innerRect(P,g):bestRect(P,g),bed=P.colors[g];if(!b)continue;const d=document.createElement('div');
     d.className='furn';d.dataset.bed=bed;
-    d.style.left=b.c0/n*100+'%';d.style.top=b.r0/n*100+'%';d.style.width=b.w/n*100+'%';d.style.height=b.h/n*100+'%';
-    d.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${ART[bed]}</svg>`;
+    if(room){const W=n*U;/* room: inside the block's inset edge; the drawing stands on the bottom (its floor) */
+      d.style.left=(b.c0*U+PAD)/W*100+'%';d.style.top=(b.r0*U+PAD)/W*100+'%';
+      d.style.width=(b.w*U-2*PAD)/W*100+'%';d.style.height=(b.h*U-2*PAD)/W*100+'%'}
+    else{d.style.left=b.c0/n*100+'%';d.style.top=b.r0/n*100+'%';d.style.width=b.w/n*100+'%';d.style.height=b.h/n*100+'%'}
+    d.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="xMid${room?'YMax':'YMid'} meet" aria-hidden="true">${ART[bed]}</svg>`;
     board.appendChild(d)}}
 S.on('newPuzzle',draw);
 draw();
-window.NapMapArt={ART,bestRect};
+window.NapMapArt={ART,bestRect,outline,innerRect};
 })();
