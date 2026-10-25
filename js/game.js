@@ -21,7 +21,17 @@ const info=()=>({mode,n:P.n,seed:P.seed,dateKey:P.dateKey||null,timeMs:elapsed+(
 function newPuzzle(m,seed,opts={}){mode=m;const n=m==='daily'?8:+m;let dateKey=null;
   if(m==='daily'){dateKey=opts.dateKey||today();seed=dailySeed(dateKey)}
   else if(seed==null)seed=(Math.random()*2**31)|0;
-  P=generate(n,seed);P.seed=seed;P.dateKey=dateKey;reset();store.set('mode',m);emit('newPuzzle',info())}
+  const my=++genToken,wrap=document.querySelector('.board-wrap');
+  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;reset();store.set('mode',m);emit('newPuzzle',info())};
+  if(n<10||!P||!genWorker){use(generate(n,seed));return}
+  /* big boards take up to a couple of seconds, so build them off the main thread */
+  wrap.setAttribute('aria-busy','true');
+  genAsync(n,seed).catch(()=>generate(n,seed)).then(use).finally(()=>{if(my===genToken)wrap.removeAttribute('aria-busy')})}
+let genToken=0,genReq=0;
+const genWorker=(()=>{try{return typeof Worker!=='undefined'&&location.protocol!=='file:'?new Worker('js/gen-worker.js'):null}catch(e){return null}})();
+const genAsync=(n,seed)=>new Promise((res,rej)=>{const id=++genReq;
+  const h=e=>{if(e.data.id!==id)return;genWorker.removeEventListener('message',h);e.data.ok?res(e.data.puzzle):rej(new Error(e.data.error))};
+  genWorker.addEventListener('message',h);genWorker.postMessage({id,n,seed})});
 function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=null;done=false;clearInterval(timerId);
   $('overlay').hidden=true;render();renderHearts();tick()}
 

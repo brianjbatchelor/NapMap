@@ -20,7 +20,7 @@
 .board-wrap[data-n="10"] .cell .x{width:36%;height:36%}
 .board-wrap[data-n="10"] .cell.wrong .x{width:46%;height:46%}
 /* busy note while a 10x10 puzzle generates */
-.sp-busy{position:absolute;inset:0;z-index:3;display:grid;place-items:center;border-radius:10px;pointer-events:none;
+.board-wrap[aria-busy="true"]::after{content:"Fluffing the pillows…";position:absolute;inset:0;z-index:3;display:grid;place-items:center;border-radius:10px;
   background:color-mix(in srgb,var(--bg) 70%,transparent);font-family:var(--display);font-weight:800;font-size:1.25rem;color:var(--ink)}
 
 /* ---------- win celebration ---------- */

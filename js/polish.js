@@ -55,23 +55,6 @@ if(muteBtn){syncMute();muteBtn.addEventListener('click',()=>{soundOn=!soundOn;S.
 /* ---------- board size hook (10x10 sizing in polish.css) ---------- */
 const setN=()=>{if(wrap&&S.puzzle)wrap.dataset.n=S.puzzle.n};
 setN();
-/* 10x10 generation runs synchronously in game.js and can take a second or two on phones.
-   Catch the clicks that start one (capture phase, before game.js), paint a busy note, then replay the click. */
-let replaying=false;
-const isBig=()=>S.mode==='10';
-function startsBig(t){
-  if(t.closest('.chip'))return t.closest('.chip').dataset.mode==='10';
-  if(t.closest('#new'))return isBig();
-  const act=t.closest('[data-act]');return !!act&&act.dataset.act==='new'&&isBig()}
-document.addEventListener('click',e=>{
-  if(replaying||!wrap||!(e.target instanceof Element)||!startsBig(e.target))return;
-  const el=e.target.closest('.chip,#new,[data-act]');e.stopImmediatePropagation();e.preventDefault();
-  let busy=wrap.querySelector('.sp-busy');
-  if(!busy){busy=document.createElement('div');busy.className='sp-busy';busy.setAttribute('role','status');wrap.appendChild(busy)}
-  busy.textContent='Fluffing the pillows…';wrap.setAttribute('aria-busy','true');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    replaying=true;try{el.click()}finally{replaying=false;busy.remove();wrap.removeAttribute('aria-busy')}}))
-},true);
 
 /* ---------- win celebration ---------- */
 let celebrateTimer=0;
