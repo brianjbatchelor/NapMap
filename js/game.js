@@ -22,7 +22,7 @@ function newPuzzle(m,seed,opts={}){mode=m;const n=m==='daily'?8:+m;let dateKey=n
   if(m==='daily'){dateKey=opts.dateKey||today();seed=dailySeed(dateKey)}
   else if(seed==null)seed=(Math.random()*2**31)|0;
   const my=++genToken,wrap=document.querySelector('.board-wrap');
-  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;reset();store.set('mode',m);emit('newPuzzle',info())};
+  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;P.live=m==='daily'&&dateKey===today();reset();store.set('mode',m);emit('newPuzzle',info())};
   if(n<10||!P||!genWorker){wrap.removeAttribute('aria-busy');use(generate(n,seed));return}
   /* big boards take up to a couple of seconds, so build them off the main thread */
   wrap.setAttribute('aria-busy','true');
@@ -83,8 +83,9 @@ function checkWin(){if(cells.filter(s=>s===2).length===P.n){done=true;stopClock(
   const t=elapsed,key=mode==='daily'?'daily':'n'+P.n,best=store.get('best:'+key,null);
   store.set('wins:'+key,store.get('wins:'+key,0)+1);const nb=!best||t<best;if(nb)store.set('best:'+key,t);
   if(mode==='daily'){if(!store.get('daily:'+P.dateKey,null))store.set('daily:'+P.dateKey,{timeMs:t,heartsLost:3-lives});}
-  if(mode==='daily'&&P.dateKey===today()){const st=store.get('streak',{n:0,last:0}),td=today();
-    if(st.last!==td){const y=new Date();y.setDate(y.getDate()-1);const yd=y.getFullYear()*10000+(y.getMonth()+1)*100+y.getDate();
+  /* streak: by the puzzle's own date, so today's daily started before midnight and solved after it still counts */
+  if(mode==='daily'&&(P.dateKey===today()||P.live)){const st=store.get('streak',{n:0,last:0}),td=P.dateKey;
+    if(st.last!==td&&st.last<td){const y=dateOf(td);y.setDate(y.getDate()-1);const yd=keyOf(y);
       st.n=st.last===yd?st.n+1:1;st.last=td;store.set('streak',st)}}
   cells=cells.map(s=>s===2?2:s===3?3:1);render();
   showCard(`<h2>Everybody's napping!</h2><p>Solved in ${fmt(t)}${nb?' · new best':''}${lives<3?` · ${3-lives} heart${3-lives>1?'s':''} lost`:''}</p>
