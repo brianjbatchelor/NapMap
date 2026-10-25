@@ -23,7 +23,7 @@ function newPuzzle(m,seed,opts={}){mode=m;const n=m==='daily'?8:+m;let dateKey=n
   else if(seed==null)seed=(Math.random()*2**31)|0;
   const my=++genToken,wrap=document.querySelector('.board-wrap');
   const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;reset();store.set('mode',m);emit('newPuzzle',info())};
-  if(n<10||!P||!genWorker){use(generate(n,seed));return}
+  if(n<10||!P||!genWorker){wrap.removeAttribute('aria-busy');use(generate(n,seed));return}
   /* big boards take up to a couple of seconds, so build them off the main thread */
   wrap.setAttribute('aria-busy','true');
   genAsync(n,seed).catch(()=>generate(n,seed)).then(use).finally(()=>{if(my===genToken)wrap.removeAttribute('aria-busy')})}
