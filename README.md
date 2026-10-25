@@ -4,7 +4,7 @@ An ad-free cat-placement logic puzzle that runs entirely in the browser.
 
 Every cat needs a bed of its own. Place one cat in every bed (each patterned area). Each row and column holds exactly one cat, and no two cats may touch, even diagonally.
 
-Play: https://brianjbatchelor.github.io/napmap/
+Play: https://brianjbatchelor.github.io/NapMap/
 
 ## Layout
 - `index.html`: page shell
