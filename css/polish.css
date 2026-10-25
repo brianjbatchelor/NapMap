@@ -8,7 +8,7 @@
   color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
 .sp-mute svg{width:20px;height:20px}
 .sp-mute[aria-pressed="false"]{color:var(--muted)}
-.sp-mute:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.sp-mute:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .sp-mute:active{transform:translateY(1px)}
 
 /* ---------- 10x10 ---------- */

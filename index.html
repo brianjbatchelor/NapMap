@@ -74,7 +74,7 @@
   <symbol id="sun" viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="currentColor"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l2.8 2.8M23.2 23.2 26 26M6 26l2.8-2.8M23.2 8.8 26 6"/></g></symbol>
 </svg>
 
-<div class="wrap">
+<main class="wrap">
   <header>
     <div>
       <h1><svg class="moon"><use href="#moon"/></svg>NapMap</h1>
@@ -104,7 +104,7 @@
   </div>
 
   <div class="status">
-    <div class="hearts" id="hearts" aria-label="Lives left"></div>
+    <div class="hearts" id="hearts" role="img" aria-label="Lives left"></div>
     <div class="label" id="label"></div>
     <div class="timer" id="timer">0:00</div>
   </div>
@@ -136,7 +136,7 @@
   <section id="friends"></section>
 
   <section class="rules">
-    <h3>How to play</h3>
+    <h2>How to play</h2>
     <ul>
       <li>Every cat needs its own <b>bed</b>: one cat per patterned area.</li>
       <li>Only one cat per <b>row</b> and per <b>column</b>.</li>
@@ -145,7 +145,7 @@
       <li><b>Double-tap</b> to place a cat. A wrong cat costs a heart, and you have three.</li>
     </ul>
   </section>
-</div>
+</main>
 
 <script src="js/generator.js"></script>
 <script src="js/generator-shaped.js"></script>

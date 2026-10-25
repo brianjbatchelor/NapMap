@@ -2,7 +2,7 @@
 .arc-chip{font:inherit;font-weight:800;font-size:.85rem;border:2px solid var(--ink);background:var(--surface);color:var(--ink);
   border-radius:999px;padding:6px 12px;cursor:pointer;display:flex;gap:6px;align-items:center}
 .arc-chip svg{width:16px;height:16px}
-.arc-chip:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.arc-chip:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 
 dialog.archive{padding:0;border:3px solid var(--ink);border-radius:18px;background:var(--surface);color:var(--ink);
   font-family:var(--body);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;
@@ -32,6 +32,9 @@ dialog.archive::backdrop{background:color-mix(in srgb,var(--bg) 72%,transparent)
 .arc-num{font-weight:800;font-size:.85rem;line-height:1.1;font-variant-numeric:tabular-nums}
 .arc-day.off{background:none;border-color:transparent;color:var(--muted);opacity:.45;cursor:default}
 .arc-day.solved{background:var(--q,var(--r2));border-color:var(--ink)}
+/* dark beds are mid-tones: soften them toward the surface so light ink text keeps 4.5:1 */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .arc-day.solved{background:color-mix(in srgb,var(--q,var(--r2)) 50%,var(--surface))}}
+:root[data-theme="dark"] .arc-day.solved{background:color-mix(in srgb,var(--q,var(--r2)) 50%,var(--surface))}
 .arc-cat{width:18px;height:18px;color:var(--ink);flex:none}
 .arc-time{font-size:.66rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .arc-lost{position:absolute;top:2px;right:2px;display:flex;flex-direction:column;gap:1px}
@@ -40,7 +43,7 @@ dialog.archive::backdrop{background:color-mix(in srgb,var(--bg) 72%,transparent)
 .arc-day.today .arc-num{color:var(--ink)}
 .arc-day.cur{box-shadow:3px 3px 0 var(--ink)}
 .arc-day.today.cur{box-shadow:inset 0 0 0 2px var(--sun),3px 3px 0 var(--ink)}
-.arc-day:focus-visible,.arc-icon:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.arc-day:focus-visible,.arc-icon:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .arc-day.today:focus-visible{outline-color:var(--ink)}
 
 @media (max-width:340px){
