@@ -32,6 +32,9 @@ dialog.archive::backdrop{background:color-mix(in srgb,var(--bg) 72%,transparent)
 .arc-num{font-weight:800;font-size:.85rem;line-height:1.1;font-variant-numeric:tabular-nums}
 .arc-day.off{background:none;border-color:transparent;color:var(--muted);opacity:.45;cursor:default}
 .arc-day.solved{background:var(--q,var(--r2));border-color:var(--ink)}
+/* dark beds are mid-tones: soften them toward the surface so light ink text keeps 4.5:1 */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .arc-day.solved{background:color-mix(in srgb,var(--q,var(--r2)) 50%,var(--surface))}}
+:root[data-theme="dark"] .arc-day.solved{background:color-mix(in srgb,var(--q,var(--r2)) 50%,var(--surface))}
 .arc-cat{width:18px;height:18px;color:var(--ink);flex:none}
 .arc-time{font-size:.66rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .arc-lost{position:absolute;top:2px;right:2px;display:flex;flex-direction:column;gap:1px}
