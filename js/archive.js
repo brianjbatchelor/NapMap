@@ -102,7 +102,7 @@ function render(){
   $('arc-month').textContent=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
   prev.disabled=!canShift(y,m,-1,td);next.disabled=!canShift(y,m,1,td);
   const s=monthSummary(y,m,td,rec);
-  $('arc-sum').textContent=s.playable?`${s.solved} of ${s.playable} solved`:'Nothing to play this month';
+  $('arc-sum').textContent=s.playable?`${s.solved} of ${s.playable} solved`:'No naps to catch up on this month';
   if(!isPlayable(focusKey,td)||ymOf(focusKey).m!==m||ymOf(focusKey).y!==y)focusKey=pickFocus(y,m,focusKey,td);
   let h='';
   monthGrid(y,m).forEach(week=>week.forEach(k=>{
