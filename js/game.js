@@ -62,7 +62,8 @@ function startClock(){if(startT||done)return;if(!elapsed)emit('start',info());st
 function stopClock(){if(startT){elapsed+=Date.now()-startT;startT=null}clearInterval(timerId);tick()}
 function renderStats(){const key=mode==='daily'?'daily':'n'+P.n,best=store.get('best:'+key,null),wins=store.get('wins:'+key,0);
   let h=`<span>Solved: <b>${wins}</b></span><span>Best: <b>${best?fmt(best):'—'}</b></span>`;
-  if(mode==='daily')h+=`<span>Streak: <b>${store.get('streak',{n:0}).n}</b></span>`;$('stats').innerHTML=h}
+  if(mode==='daily'){const st=store.get('streak',{n:0,last:0}),y=new Date();y.setDate(y.getDate()-1); // a missed day breaks the streak
+    h+=`<span>Streak: <b>${st.last===today()||st.last===keyOf(y)?st.n:0}</b></span>`}$('stats').innerHTML=h}
 
 /* ---------- rules ---------- */
 function peers(k){const n=P.n,r=k/n|0,c=k%n,g=P.reg[k],out=new Set();
