@@ -177,7 +177,7 @@ function icon(id, cls) {
   return s;
 }
 
-const heading = h('h3', { class: 'lb-title', id: 'friends-title' }, 'Friends');
+const heading = h('h2', { class: 'lb-title', id: 'friends-title' }, 'Friends');
 root.setAttribute('aria-labelledby', 'friends-title');
 root.classList.add('friends');
 
