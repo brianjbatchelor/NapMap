@@ -1,8 +1,8 @@
 (()=>{
 const {generate}=window.SunGen;
 /* ---------- beds: each region is a different piece of cat furniture (art in css/furniture.css) ---------- */
-const BEDS=['Tufty Puff Cushion','Knitty-Knot Blanket','Sisal Tippy Tower','Wiggle-Wicker Basket','Swingy Rope Hammock',
-  'Very Good Box','Plushy Donut Bed','Tippy Teepee','Cloud-Fluff Bed','Velvet Chaise Longue'];
+const BEDS=['Tufty Puff Pillow','Knitty-Knot Blankets','Sisal Tippy Tower','Wiggle-Wicker Basket','Swingy Hammock',
+  'Very Good Box','Plushy Donut Bed','Tippy Teepee','Cloud-Fluff Bed','Velvet Fainting Couch'];
 /* ---------- state ---------- */
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem('napmap:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
@@ -43,7 +43,6 @@ function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat($
       const up=r===0||P.reg[k-n]!==g,dn=r===n-1||P.reg[k+n]!==g,lf=c===0||P.reg[k-1]!==g,rt=c===n-1||P.reg[k+1]!==g,R='22%';
       e.style.borderRadius=`${up&&lf?R:0} ${up&&rt?R:0} ${dn&&rt?R:0} ${dn&&lf?R:0}`;e.title=BEDS[P.colors[g]];
       e.style.setProperty('--et',+up);e.style.setProperty('--eb',+dn);e.style.setProperty('--el',+lf);e.style.setProperty('--er',+rt);
-      if(P.reg.indexOf(g)===k)e.dataset.anchor='';
       const side=(edge,outer)=>outer?'0px solid transparent':edge?'1.5px solid var(--line)':'.5px solid var(--seam)';
       e.style.borderTop=side(up,r===0);e.style.borderBottom=side(dn,r===n-1);e.style.borderLeft=side(lf,c===0);e.style.borderRight=side(rt,c===n-1);
       b.appendChild(e);cellEls.push(e)}}
