@@ -1,6 +1,6 @@
 /* Offline support: precache the app shell; serve game files network-first (cache when offline or slow), fonts cache-first.
    Bump VERSION whenever any shell file changes. */
-const VERSION = 'napmap-v14';
+const VERSION = 'napmap-v15';
 const SHELL = ['./', 'index.html', 'css/style.css', 'css/furniture.css', 'js/furniture.js', 'js/generator.js', 'js/game.js',
   'css/archive.css', 'js/archive.js',
   'css/polish.css', 'js/polish.js', 'js/gen-worker.js',
@@ -8,7 +8,9 @@ const SHELL = ['./', 'index.html', 'css/style.css', 'css/furniture.css', 'js/fur
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache:'reload' skips the HTTP cache (GitHub Pages sends max-age=600), so a VERSION bump really refetches
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, {cache: 'reload'}))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
@@ -26,7 +28,8 @@ self.addEventListener('fetch', e => {
     const hit = await cache.match(req, {ignoreSearch: sameOrigin});
     if (isFont && hit) return hit; // fonts never change: cache first
     // Game files: network first so updates show on the next load; fall back to the cache when offline or slow.
-    const net = fetch(req).then(res => {
+    // no-cache: revalidate with GitHub Pages instead of trusting its 10-minute browser cache
+    const net = fetch(req, sameOrigin ? {cache: 'no-cache'} : {}).then(res => {
       if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
       return res;
     });

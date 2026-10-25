@@ -1,7 +1,7 @@
 /* Layout: one centered play column: header, mode chips, status strip, square board of cat furniture, controls, rules card. */
 :root{
   --bg:#EDF0F6; --surface:#FFFFFF; --ink:#1F2A44; --muted:#5D6886; --line:#1F2A44;
-  --sun:#F2A516; --heart:#E0475B; --soft:#DCE2EE;
+  --sun:#F2A516; --heart:#E0475B; --soft:#DCE2EE; --focus:#9A5B00;
   --r0:#F6B9AE; --r1:#F7DC93; --r2:#BFDDA8; --r3:#EFB27A; --r4:#ACD6E6;
   --r5:#D3C0A2; --r6:#F5BFD6; --r7:#D3C4F0; --r8:#DDE6F7; --r9:#A9DCCF;
   --pat:rgba(31,42,68,.13); --pat2:rgba(255,255,255,.55); --seam:rgba(31,42,68,.14); --stitch:rgba(31,42,68,.38);
@@ -10,19 +10,19 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141A2A; --surface:#1E2639; --ink:#EEF1F8; --muted:#A3ADC6; --line:#0B0F1A;
-  --sun:#F5B53A; --heart:#F06A7C; --soft:#2A3349;
+  --sun:#F5B53A; --heart:#F06A7C; --soft:#2A3349; --focus:#F5B53A;
   --r0:#B56D63; --r1:#B79A4E; --r2:#789D63; --r3:#A87444; --r4:#5F93A6;
   --r5:#8C7A60; --r6:#AE7493; --r7:#8A7AB5; --r8:#5C6A88; --r9:#5E9E8E;
   --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.3); --stitch:rgba(255,255,255,.4); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141A2A; --surface:#1E2639; --ink:#EEF1F8; --muted:#A3ADC6; --line:#0B0F1A;
-  --sun:#F5B53A; --heart:#F06A7C; --soft:#2A3349;
+  --sun:#F5B53A; --heart:#F06A7C; --soft:#2A3349; --focus:#F5B53A;
   --r0:#B56D63; --r1:#B79A4E; --r2:#789D63; --r3:#A87444; --r4:#5F93A6;
   --r5:#8C7A60; --r6:#AE7493; --r7:#8A7AB5; --r8:#5C6A88; --r9:#5E9E8E;
   --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.3); --stitch:rgba(255,255,255,.4); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation} /* no iOS double-tap zoom on quick Undo/Hint taps; pinch zoom still works */
 body{margin:0}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;
@@ -38,7 +38,10 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .chip small{font-weight:700;color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .chip[aria-pressed="true"] small{color:var(--bg);opacity:.75}
-.chip:focus-visible,.btn:focus-visible,.cell:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.chip:focus-visible,.btn:focus-visible,.opts input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+/* cells sit edge to edge inside an overflow:hidden board, so an outline would be clipped and painted over by neighbours: draw the ring inside */
+.cell:focus-visible::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
+  box-shadow:inset 0 0 0 3px var(--focus),inset 0 0 0 5px var(--surface)}
 .status{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:800}
 .hearts{display:flex;gap:4px}
 .hearts svg{width:24px;height:24px;color:var(--heart);transition:transform .2s,opacity .2s}
@@ -47,7 +50,8 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .label{color:var(--muted);font-size:.85rem}
 .board-wrap{position:relative;width:100%;max-width:100%;aspect-ratio:1}
 .board{display:grid;width:100%;height:100%;border:3px solid var(--line);border-radius:10px;overflow:hidden;
-  touch-action:none;user-select:none;-webkit-user-select:none;background:var(--line)}
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:var(--line)}
+.board>.row{display:contents}
 .cell{position:relative;display:grid;place-items:center;cursor:pointer;border:0 solid var(--line);outline:none;min-width:0;min-height:0;overflow:hidden}
 .cell svg{position:absolute;inset:0;margin:auto;width:66%;height:66%;pointer-events:none}
 .cell .x{width:32%;height:32%;color:var(--ink);opacity:.75}
@@ -66,6 +70,9 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .card h2{font-family:var(--display);font-size:1.7rem;margin:0}
 .card p{margin:0;color:var(--muted);font-weight:700}
 .card .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+/* very narrow phones (e.g. 280px folded): keep the card inside the board; scroll rather than spill over the controls */
+.overlay{overflow:auto;place-items:safe center}
+@media (max-width:340px){.card{padding:14px 12px;gap:6px;max-width:94%}.card h2{font-size:1.3rem}.card p{font-size:.85rem}}
 .controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .btn{font:inherit;font-weight:800;border:2px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:12px;
   padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.85rem}
@@ -76,7 +83,7 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .opts{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--muted);font-size:.9rem}
 .opts input{width:18px;height:18px;accent-color:var(--sun)}
 .rules{background:var(--surface);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
-.rules h3{font-family:var(--display);margin:0;font-size:1.15rem}
+.rules h2{font-family:var(--display);margin:0;font-size:1.15rem}
 .rules ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;line-height:1.45}
 .rules b{color:var(--ink)}
 .stats{display:flex;gap:16px;flex-wrap:wrap;font-weight:700;color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
