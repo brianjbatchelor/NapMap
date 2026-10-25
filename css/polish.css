@@ -1,0 +1,61 @@
+/* Sunspots polish: mute button, 10x10 sizing, win celebration. Uses theme tokens from style.css. */
+
+/* style.css gives .overlay display:grid, which overrides the [hidden] attribute; keep hidden overlays hidden */
+.overlay[hidden]{display:none}
+
+/* ---------- mute toggle ---------- */
+.sp-mute{font:inherit;width:40px;height:40px;flex:none;border:2px solid var(--ink);border-radius:999px;background:var(--surface);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.sp-mute svg{width:20px;height:20px}
+.sp-mute[aria-pressed="false"]{color:var(--muted)}
+.sp-mute:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.sp-mute:active{transform:translateY(1px)}
+
+/* ---------- 10x10 ---------- */
+/* six chips on a phone: tighten so they wrap into two tidy rows */
+@media (max-width:420px){.modes{gap:5px}.chip{padding:5px 10px;font-size:.8rem;gap:4px}}
+/* ~34px cells at 380px wide: slightly larger marks keep them legible; thinner outer frame */
+.board-wrap[data-n="10"] .board{border-width:2.5px}
+.board-wrap[data-n="10"] .cell svg{width:74%;height:74%}
+.board-wrap[data-n="10"] .cell .x{width:36%;height:36%}
+.board-wrap[data-n="10"] .cell.wrong .x{width:46%;height:46%}
+/* busy note while a 10x10 puzzle generates */
+.sp-busy{position:absolute;inset:0;z-index:3;display:grid;place-items:center;border-radius:10px;pointer-events:none;
+  background:color-mix(in srgb,var(--bg) 70%,transparent);font-family:var(--display);font-weight:800;font-size:1.25rem;color:var(--ink)}
+
+/* ---------- win celebration ---------- */
+.cell.cat svg.sp-hop{animation:sp-hop .52s cubic-bezier(.3,.7,.4,1) var(--sp-delay,0ms) both}
+@keyframes sp-hop{
+  0%{transform:translateY(0) scale(1,1)}
+  18%{transform:translateY(4%) scale(1.12,.86)}
+  48%{transform:translateY(-26%) scale(.94,1.08)}
+  78%{transform:translateY(2%) scale(1.08,.92)}
+  100%{transform:translateY(0) scale(1,1)}}
+
+/* overlay tint starts lighter so the hop and dreamy drift read, then eases back to normal */
+.board-wrap.sp-celebrate .overlay{background:color-mix(in srgb,var(--bg) 38%,transparent);backdrop-filter:none}
+.board-wrap .overlay{transition:background .6s ease,backdrop-filter .6s ease}
+
+.sp-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px}
+.sp-glow{position:absolute;left:50%;top:50%;width:70%;aspect-ratio:1;border-radius:50%;translate:-50% -50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--sun) 42%,transparent) 0%,color-mix(in srgb,var(--r8) 30%,transparent) 38%,transparent 70%);
+  animation:sp-glow 1.7s ease-out both}
+@keyframes sp-glow{0%{opacity:0;transform:scale(.4)}30%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.25)}}
+
+/* floaters drift up from around the center with a gentle sway: --x/--y start offset from center, --dx sway, --dy rise (px) */
+.sp-float{position:absolute;left:50%;top:50%;width:var(--s);height:var(--s);margin:calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  opacity:0;font-style:normal;animation:sp-float 1.5s cubic-bezier(.25,.6,.35,1) var(--sd,0ms) both}
+.sp-z{width:auto;height:auto;font-family:var(--display);font-weight:800;font-size:var(--s);line-height:1;color:var(--c);
+  text-shadow:0 0 6px color-mix(in srgb,var(--bg) 70%,transparent)}
+.sp-star{background:var(--c);filter:drop-shadow(0 0 1.5px color-mix(in srgb,var(--ink) 55%,transparent));clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+.sp-moon{border-radius:50%;filter:drop-shadow(0 0 1.5px color-mix(in srgb,var(--ink) 45%,transparent));box-shadow:inset calc(var(--s) * -.32) calc(var(--s) * -.08) 0 0 var(--c)}
+@keyframes sp-float{
+  0%{opacity:0;transform:translate(var(--x),var(--y)) rotate(0) scale(.5)}
+  18%{opacity:1;transform:translate(calc(var(--x) + var(--dx)),calc(var(--y) - var(--dy) * .15)) rotate(calc(var(--rot) * -.4)) scale(1)}
+  55%{opacity:1;transform:translate(calc(var(--x) - var(--dx) * .6),calc(var(--y) - var(--dy) * .6)) rotate(var(--rot)) scale(1)}
+  100%{opacity:0;transform:translate(var(--x),calc(var(--y) - var(--dy))) rotate(calc(var(--rot) * -.2)) scale(.85)}}
+
+@media (prefers-reduced-motion:reduce){
+  .cell.cat svg.sp-hop,.sp-glow,.sp-float{animation:none}
+  .sp-burst{display:none}
+  .board-wrap .overlay{transition:none}}

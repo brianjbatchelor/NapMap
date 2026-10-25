@@ -1,8 +1,9 @@
 /* Offline support: precache the app shell, serve cache-first, refresh in the background.
    Bump VERSION whenever any shell file changes. */
-const VERSION = 'napmap-v2';
+const VERSION = 'napmap-v3';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/generator.js', 'js/game.js',
   'css/archive.css', 'js/archive.js',
+  'css/polish.css', 'js/polish.js', 'js/gen-worker.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
