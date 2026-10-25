@@ -17,7 +17,7 @@
 .cell[data-bed="9"]{--bed:var(--r9)}
 .board{position:relative;isolation:isolate}
 .cell svg{z-index:2}
-.furn{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center}
-.furn svg{width:90%;height:90%;overflow:visible;opacity:.82;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
+.furn{position:absolute;z-index:1;pointer-events:none;overflow:hidden}
+.furn svg{position:absolute;inset:6%;width:88%;height:88%;overflow:visible;opacity:.82;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .furn svg{opacity:.7}}
 :root[data-theme="dark"] .furn svg{opacity:.7}
