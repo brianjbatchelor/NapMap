@@ -1,25 +1,25 @@
-/* Layout: one centered play column: header, mode chips, status strip, square board of storybook beds, controls, rules card. */
+/* Layout: one centered play column: header, mode chips, status strip, square board of cat furniture, controls, rules card. */
 :root{
   --bg:#EDF0F6; --surface:#FFFFFF; --ink:#1F2A44; --muted:#5D6886; --line:#1F2A44;
   --sun:#F2A516; --heart:#E0475B; --soft:#DCE2EE;
-  --r0:#F7C9C0; --r1:#F9E1A6; --r2:#C8E6B4; --r3:#B6DCE8; --r4:#D6CAF0;
-  --r5:#F4C6DE; --r6:#CDE6DA; --r7:#E9D2B3; --r8:#BFD0F2; --r9:#EDE59E;
-  --pat:rgba(31,42,68,.13); --pat2:rgba(255,255,255,.55); --seam:rgba(31,42,68,.18);
+  --r0:#F6B9AE; --r1:#F7DC93; --r2:#BFDDA8; --r3:#EFB27A; --r4:#ACD6E6;
+  --r5:#D3C0A2; --r6:#F5BFD6; --r7:#D3C4F0; --r8:#DDE6F7; --r9:#A9DCCF;
+  --pat:rgba(31,42,68,.13); --pat2:rgba(255,255,255,.55); --seam:rgba(31,42,68,.14); --stitch:rgba(31,42,68,.38);
   --display:"Sniglet","Trebuchet MS",system-ui,sans-serif;
   --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141A2A; --surface:#1E2639; --ink:#EEF1F8; --muted:#A3ADC6; --line:#0B0F1A;
   --sun:#F5B53A; --heart:#F06A7C; --soft:#2A3349;
-  --r0:#B9786E; --r1:#B99A55; --r2:#7FA36C; --r3:#6A9AAB; --r4:#8E80B4;
-  --r5:#B07A99; --r6:#79A08F; --r7:#A68B68; --r8:#7488B6; --r9:#A69E5A;
-  --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.35); color-scheme:dark}}
+  --r0:#B56D63; --r1:#B79A4E; --r2:#789D63; --r3:#A87444; --r4:#5F93A6;
+  --r5:#8C7A60; --r6:#AE7493; --r7:#8A7AB5; --r8:#5C6A88; --r9:#5E9E8E;
+  --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.3); --stitch:rgba(255,255,255,.4); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141A2A; --surface:#1E2639; --ink:#EEF1F8; --muted:#A3ADC6; --line:#0B0F1A;
   --sun:#F5B53A; --heart:#F06A7C; --soft:#2A3349;
-  --r0:#B9786E; --r1:#B99A55; --r2:#7FA36C; --r3:#6A9AAB; --r4:#8E80B4;
-  --r5:#B07A99; --r6:#79A08F; --r7:#A68B68; --r8:#7488B6; --r9:#A69E5A;
-  --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.35); color-scheme:dark}
+  --r0:#B56D63; --r1:#B79A4E; --r2:#789D63; --r3:#A87444; --r4:#5F93A6;
+  --r5:#8C7A60; --r6:#AE7493; --r7:#8A7AB5; --r8:#5C6A88; --r9:#5E9E8E;
+  --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.3); --stitch:rgba(255,255,255,.4); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
@@ -83,15 +83,3 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .stats span b{color:var(--ink)}
 .win-extra:empty{display:none}
 
-/* Storybook beds: every region gets its own fabric. Patterns repeat in halves of a cell so they tile seamlessly. */
-.cell[data-bed]{background-size:50% 50%}
-.cell[data-bed="0"]{background-color:var(--r0);background-image:linear-gradient(45deg,var(--pat) 25%,transparent 25% 50%,var(--pat) 50% 75%,transparent 75%)}
-.cell[data-bed="1"]{background-color:var(--r1);background-image:radial-gradient(circle,var(--pat2) 0 22%,transparent 24%)}
-.cell[data-bed="2"]{background-color:var(--r2);background-size:100% 100%;background-image:radial-gradient(circle,transparent 0 18%,var(--pat) 19% 27%,transparent 28% 40%,var(--pat) 41% 49%,transparent 50%)}
-.cell[data-bed="3"]{background-color:var(--r3);background-image:linear-gradient(135deg,var(--pat) 25%,transparent 25%),linear-gradient(225deg,var(--pat) 25%,transparent 25%)}
-.cell[data-bed="4"]{background-color:var(--r4);background-image:conic-gradient(var(--pat2) 25%,transparent 0 50%,var(--pat2) 0 75%,transparent 0)}
-.cell[data-bed="5"]{background-color:var(--r5);background-size:100% 25%;background-image:linear-gradient(170deg,transparent 40%,var(--pat) 40% 60%,transparent 60%)}
-.cell[data-bed="6"]{background-color:var(--r6);background-image:radial-gradient(circle at 50% 0,transparent 0 40%,var(--pat) 41% 52%,transparent 53%)}
-.cell[data-bed="7"]{background-color:var(--r7);background-image:linear-gradient(90deg,var(--pat) 0 18%,transparent 18%),linear-gradient(0deg,var(--pat) 0 18%,transparent 18%)}
-.cell[data-bed="8"]{background-color:var(--r8);background-size:100% 100%;background-image:radial-gradient(circle at 30% 38%,var(--pat2) 0 20%,transparent 21%),radial-gradient(circle at 68% 66%,var(--pat2) 0 15%,transparent 16%),radial-gradient(circle at 75% 22%,var(--pat2) 0 8%,transparent 9%)}
-.cell[data-bed="9"]{background-color:var(--r9);background-image:conic-gradient(from 45deg,var(--pat) 0 25%,transparent 0 50%,var(--pat) 0 75%,transparent 0)}
