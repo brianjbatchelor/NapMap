@@ -94,9 +94,11 @@ function lose(){done=true;stopClock();emit('lose',info());
   showCard(`<h2>Out of hearts</h2><p>Three cats in the wrong beds. Try the same puzzle again or see where they belonged.</p>
   <div class="row"><button class="btn primary" data-act="retry">Try again</button><button class="btn" data-act="reveal">Show solution</button></div>`)}
 function showCard(html){const o=$('overlay'),kb=!!document.activeElement?.closest('#board,.controls');
-  o.innerHTML=`<div class="card" role="group" aria-labelledby="card-title">${html}</div>`;o.querySelector('h2')?.setAttribute('id','card-title');o.hidden=false;
+  cardAt=performance.now();o.innerHTML=`<div class="card" role="group" aria-labelledby="card-title">${html}</div>`;o.querySelector('h2')?.setAttribute('id','card-title');o.hidden=false;
   if(kb)o.querySelector('[data-act]')?.focus()} // keyboard players land on the card instead of a cell hidden under it
-$('overlay').addEventListener('click',e=>{const a=e.target.closest('[data-act]')?.dataset.act;if(!a)return;
+/* the click that follows the board tap which ended the game lands on the card that tap just opened: ignore it */
+let cardAt=-1e9;
+$('overlay').addEventListener('click',e=>{const a=e.target.closest('[data-act]')?.dataset.act;if(!a||e.detail&&performance.now()-cardAt<500)return;
   if(a==='new')newPuzzle(mode);else if(a==='practice')newPuzzle('8');else if(a==='retry')reset();
   else if(a==='reveal'){$('overlay').hidden=true;cells=cells.map((s,k)=>isSol(k)?2:s===3?3:1);render()}
   if($('overlay').hidden||!$('overlay').contains(document.activeElement))board.querySelector('.cell[tabindex="0"]')?.focus({preventScroll:true})});
