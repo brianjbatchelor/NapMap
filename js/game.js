@@ -114,16 +114,20 @@ const STAR_TIPS=['solvable by spotting rows, columns and beds with one open spot
   'needs spotting where a cat would squeeze out a whole row, column or bed',
   'needs spotting groups of beds that share the same rows or columns'];
 let hintTimer=0;
-function hideHint(){const b=$('hint-bubble');if(b)b.hidden=true;clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone'))}
+/* the hint's highlight stays until the player's next move on the board, a new hint, or closing the bubble */
+function clearHintMarks(){clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone','hint-keep'))}
+function hideHint(){const b=$('hint-bubble');if(b)b.hidden=true;clearHintMarks()}
 function hint(){if(done)return;startClock();
   const step=DIFF.nextStep(P,cells,{names:P.colors.map(c=>BEDS[c])});
   if(step.action==='place'){if(cells[step.cell]===0)placeCat(step.cell)}
   else if(step.action==='cross'){snapshot();step.cells.forEach(k=>{if(cells[k]===0)cells[k]=1});render()}
-  clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone','hint'));void $('board').offsetWidth;
+  clearHintMarks();cellEls.forEach(e=>e.classList.remove('hint'));void $('board').offsetWidth;
   step.zone.forEach(k=>cellEls[k].classList.add('hint-zone'));step.cells.forEach(k=>cellEls[k].classList.add('hint'));
-  hintTimer=setTimeout(()=>cellEls.forEach(e=>e.classList.remove('hint-zone')),1800);
+  step.cells.forEach(k=>cellEls[k].classList.add('hint-keep'));
   const b=$('hint-bubble');if(b&&step.text){b.hidden=false;b.dataset.rule=step.rule;$('hint-text').textContent=step.text}}
 $('hint-close').onclick=hideHint;
+$('board').addEventListener('pointerdown',clearHintMarks);
+$('board').addEventListener('keydown',e=>{if(!/Arrow|Tab/.test(e.key))clearHintMarks()});
 /* --- end difficulty --- */
 
 /* ---------- input ---------- */

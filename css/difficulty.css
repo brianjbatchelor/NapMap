@@ -20,8 +20,9 @@
 /* cells of the row, column or bed a hint talks about: a soft sunny wash that fades out */
 .cell.hint-zone::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   background:color-mix(in srgb,var(--sun) 30%,transparent);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--sun) 80%,transparent);
-  animation:hint-zone 1.8s ease-in forwards}
-@keyframes hint-zone{0%,55%{opacity:1}100%{opacity:0}}
+  animation:hint-zone 1.6s ease-in-out infinite alternate}
+@keyframes hint-zone{from{opacity:1}to{opacity:.55}}
+.cell.hint-keep,.cell.hint-keep[data-bed]{box-shadow:inset 0 0 0 4px var(--sun)}
 
 .label .stars{color:var(--sun);letter-spacing:1px;white-space:nowrap;cursor:help;font-weight:800}
 @media (prefers-reduced-motion:reduce){.hint-bubble{animation:none}.cell.hint-zone::after{animation:none;opacity:.8}}
