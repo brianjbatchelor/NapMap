@@ -92,10 +92,13 @@ function checkWin(){if(cells.filter(s=>s===2).length===P.n){done=true;stopClock(
 function lose(){done=true;stopClock();emit('lose',info());
   showCard(`<h2>Out of hearts</h2><p>Three cats in the wrong beds. Try the same puzzle again or see where they belonged.</p>
   <div class="row"><button class="btn primary" data-act="retry">Try again</button><button class="btn" data-act="reveal">Show solution</button></div>`)}
-function showCard(html){const o=$('overlay');o.innerHTML=`<div class="card">${html}</div>`;o.hidden=false}
+function showCard(html){const o=$('overlay'),kb=!!document.activeElement?.closest('#board,.controls');
+  o.innerHTML=`<div class="card" role="group" aria-labelledby="card-title">${html}</div>`;o.querySelector('h2')?.setAttribute('id','card-title');o.hidden=false;
+  if(kb)o.querySelector('[data-act]')?.focus()} // keyboard players land on the card instead of a cell hidden under it
 $('overlay').addEventListener('click',e=>{const a=e.target.closest('[data-act]')?.dataset.act;if(!a)return;
   if(a==='new')newPuzzle(mode);else if(a==='practice')newPuzzle('8');else if(a==='retry')reset();
-  else if(a==='reveal'){$('overlay').hidden=true;cells=cells.map((s,k)=>isSol(k)?2:s===3?3:1);render()}});
+  else if(a==='reveal'){$('overlay').hidden=true;cells=cells.map((s,k)=>isSol(k)?2:s===3?3:1);render()}
+  if($('overlay').hidden||!$('overlay').contains(document.activeElement))board.querySelector('.cell[tabindex="0"]')?.focus({preventScroll:true})});
 
 /* ---------- hint ---------- */
 function hint(){if(done)return;startClock();const n=P.n;
