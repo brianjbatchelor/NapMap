@@ -10,7 +10,7 @@ Play: https://brianjbatchelor.github.io/napmap/
 - `index.html`: page shell
 - `css/style.css`: styles and theme tokens (light and dark)
 - `js/generator.js`: puzzle generator and solver (pure, also runs in Node)
-- `js/game.js`: game state, rendering and input; exposes `window.NapMap` (alias `window.Sunspots`) with an event bus
+- `js/game.js`: game state, rendering and input; exposes `window.NapMap` (alias `window.NapMap`) with an event bus
 - `sw.js`, `manifest.webmanifest`: offline support and home-screen install
 
 ## Events

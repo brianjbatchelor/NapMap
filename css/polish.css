@@ -1,4 +1,4 @@
-/* Sunspots polish: mute button, 10x10 sizing, win celebration. Uses theme tokens from style.css. */
+/* NapMap polish: mute button, 10x10 sizing, win celebration. Uses theme tokens from style.css. */
 
 /* style.css gives .overlay display:grid, which overrides the [hidden] attribute; keep hidden overlays hidden */
 .overlay[hidden]{display:none}

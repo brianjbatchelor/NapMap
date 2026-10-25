@@ -1,4 +1,4 @@
-/* Sunspots puzzle generator: random valid cat layout, regions grown around each cat,
+/* NapMap puzzle generator: random valid cat layout, regions grown around each cat,
    then local repairs until the puzzle has exactly one solution. Pure, no DOM. */
 (function(root){
 const D=[[1,0],[-1,0],[0,1],[0,-1]];

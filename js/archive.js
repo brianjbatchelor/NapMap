@@ -63,8 +63,8 @@ if(typeof module!=='undefined'&&module.exports)module.exports=Cal;
 root.ArchiveCal=Cal;
 
 /* ---------- UI ---------- */
-if(typeof document==='undefined'||!root.Sunspots)return;
-const S=root.Sunspots,btn=document.getElementById('archive-btn');
+if(typeof document==='undefined'||!root.NapMap)return;
+const S=root.NapMap,btn=document.getElementById('archive-btn');
 if(!btn)return;
 
 const svg=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;

@@ -1,0 +1,62 @@
+/* Friends leaderboard (#friends, filled by js/leaderboard.js). Uses the theme tokens from style.css. */
+.friends{background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.lb-head{display:flex;align-items:center;gap:10px}
+.lb-title{font-family:var(--display);margin:0;font-size:1.15rem}
+.lb-sub{color:var(--muted);font-weight:700;font-size:.85rem;margin-right:auto}
+.lb-note{margin:0;color:var(--muted);font-weight:700;font-size:.9rem;line-height:1.4}
+.lb-warn{color:var(--heart)}
+.lb-status{font-size:.85rem}
+.lb-board[aria-busy="true"] .lb-list{opacity:.6}
+
+.lb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.lb-row{display:grid;grid-template-columns:2ch minmax(0,1fr) auto 4.5ch;align-items:center;gap:10px;
+  padding:6px 10px;border-radius:10px;font-weight:800;background:var(--soft);border:2px solid transparent}
+.lb-row.me{border-color:var(--ink);background:color-mix(in srgb,var(--sun) 28%,var(--surface))}
+.lb-rank{font-family:var(--display);font-variant-numeric:tabular-nums;text-align:right;color:var(--muted)}
+.lb-row:first-child .lb-rank{color:var(--sun)}
+.lb-row.me .lb-rank{color:var(--ink)}
+.lb-name{display:flex;align-items:center;gap:6px;min-width:0}
+.lb-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-you{flex:none;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;background:var(--ink);color:var(--bg);
+  border-radius:999px;padding:1px 7px}
+.lb-hearts{display:inline-flex;align-items:center;gap:3px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.lb-hearts svg{width:15px;height:15px;color:var(--heart)}
+.lb-hearts:not(.lost) svg{color:var(--muted);opacity:.45}
+.lb-time{font-family:var(--display);font-variant-numeric:tabular-nums;text-align:right}
+
+.lb-group{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:2px dashed var(--soft)}
+.lb-group-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lb-label{color:var(--muted);font-weight:800;font-size:.8rem}
+.lb-as b{color:var(--ink)}
+.lb-code{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;background:var(--soft);border-radius:8px;padding:2px 8px;color:var(--ink)}
+.lb-copied{color:var(--muted);font-weight:700;font-size:.85rem}
+
+.lb-btn{font:inherit;font-weight:800;font-size:.85rem;border:2px solid var(--ink);background:var(--surface);color:var(--ink);
+  border-radius:12px;padding:7px 12px;cursor:pointer;min-height:36px}
+.lb-btn.primary{background:var(--sun);color:#1F2A44}
+.lb-btn.danger{background:var(--heart);color:#fff}
+.lb-btn.quiet{border-color:transparent;color:var(--muted);background:transparent}
+.lb-btn:active{transform:translateY(1px)}
+.lb-btn:focus-visible,.lb-chip:focus-visible,.lb-input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.lb-icon{padding:0;width:36px;height:36px;display:grid;place-items:center;border-radius:50%}
+.lb-icon svg{width:18px;height:18px}
+.lb-icon[hidden]{display:none}
+
+.lb-controls .lb-actions,.lb-form .lb-actions{display:flex;gap:6px;flex-wrap:wrap}
+.lb-form{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:12px;padding:12px}
+.lb-form-title{margin:0;font-family:var(--display);font-size:1rem}
+.lb-field{display:flex;flex-direction:column;gap:3px}
+.lb-input{font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--surface);border:2px solid var(--ink);
+  border-radius:10px;padding:7px 10px;width:100%;min-width:0}
+.lb-input[aria-invalid="true"]{border-color:var(--heart)}
+.lb-code-input{font-family:var(--display);letter-spacing:2px;text-transform:uppercase}
+.lb-link{font-size:.85rem}
+.lb-err{margin:0;color:var(--heart);font-weight:800;font-size:.85rem}
+.lb-recent{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lb-chip{font:inherit;font-family:var(--display);letter-spacing:1px;font-size:.85rem;border:2px solid var(--ink);
+  background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+
+.lb-win{margin:0;color:var(--muted);font-weight:700}
+.lb-win b{color:var(--ink);font-family:var(--display);font-size:1.15rem}
+
+@media (max-width:420px){.friends{padding:12px}.lb-row{gap:8px;padding:6px 8px}}

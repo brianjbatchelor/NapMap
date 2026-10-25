@@ -1,7 +1,7 @@
-/* Sunspots polish: Web Audio sound effects + mute toggle, 10x10 sizing hook, win celebration.
-   Hooks in only through window.Sunspots (event bus, store, puzzle) and the DOM; game.js is untouched. */
+/* NapMap polish: Web Audio sound effects + mute toggle, 10x10 sizing hook, win celebration.
+   Hooks in only through window.NapMap (event bus, store, puzzle) and the DOM; game.js is untouched. */
 (()=>{
-const S=window.Sunspots;if(!S)return;
+const S=window.NapMap;if(!S)return;
 const $=id=>document.getElementById(id);
 const board=$('board'),wrap=board&&board.closest('.board-wrap');
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;

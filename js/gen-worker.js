@@ -1,4 +1,4 @@
-/* Sunspots generator worker: runs SunGen.generate off the main thread.
+/* NapMap generator worker: runs SunGen.generate off the main thread.
    Request:  {id, n, seed}
    Response: {id, ok:true, puzzle:{n, sol, reg, colors}, ms}  or  {id, ok:false, error}
    Usage from the page:

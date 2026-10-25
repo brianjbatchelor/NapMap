@@ -12,7 +12,7 @@ const keyOf=d=>d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
 const today=()=>keyOf(new Date());
 const dateOf=k=>new Date(k/10000|0,(k/100|0)%100-1,k%100);
 const dailySeed=k=>k*31+7;
-/* event bus: other modules listen with Sunspots.on(type, fn) */
+/* event bus: other modules listen with NapMap.on(type, fn) */
 const bus={};
 const on=(t,f)=>{(bus[t]=bus[t]||[]).push(f)};
 const emit=(t,d)=>{(bus[t]||[]).forEach(f=>{try{f(d)}catch(e){console.error(e)}})};
@@ -139,7 +139,7 @@ $('autox').onchange=()=>store.set('autox',$('autox').checked);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&startT){elapsed+=Date.now()-startT;startT=null;clearInterval(timerId);startT=null;window._paused=true}
   else if(!document.hidden&&window._paused&&!done){window._paused=false;startT=Date.now();timerId=setInterval(tick,250)}});
 
-window.Sunspots=window.NapMap={BEDS,on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,
+window.NapMap={BEDS,on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,
   get puzzle(){return P},get mode(){return mode},get done(){return done}};
 newPuzzle(store.get('mode','daily'));
 })();
