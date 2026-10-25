@@ -21,6 +21,10 @@
   --r5:#B07A99; --r6:#79A08F; --r7:#A68B68; --r8:#7488B6; --r9:#A69E5A;
   --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.35); color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
 .wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
