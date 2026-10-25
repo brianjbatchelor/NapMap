@@ -2,6 +2,7 @@
    Bump VERSION whenever any shell file changes. */
 const VERSION = 'sunspots-v1';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/generator.js', 'js/game.js',
+  'css/polish.css', 'js/polish.js', 'js/gen-worker.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
