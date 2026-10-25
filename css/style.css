@@ -22,7 +22,7 @@
   --pat:rgba(11,15,26,.22); --pat2:rgba(255,255,255,.16); --seam:rgba(11,15,26,.3); --stitch:rgba(255,255,255,.4); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation} /* no iOS double-tap zoom on quick Undo/Hint taps; pinch zoom still works */
 body{margin:0}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;
