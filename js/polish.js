@@ -91,5 +91,7 @@ function celebrate(){
   celebrateTimer=setTimeout(()=>{wrap.classList.remove('sp-celebrate');setTimeout(()=>layer.remove(),600)},1700);
 }
 /* the tint class goes on in the same task as the win card appears, so the card never flashes dark first */
-S.on('win',()=>{if(!wrap||reduced())return;clearCelebration();wrap.classList.add('sp-celebrate');requestAnimationFrame(celebrate)});
+/* js/cats.js walks the last cat in; the hop waits until it has curled up */
+S.on('win',()=>{if(!wrap||reduced())return;clearCelebration();wrap.classList.add('sp-celebrate');
+  const go=()=>requestAnimationFrame(celebrate);window.NapMapCats?window.NapMapCats.whenIdle(go):go()});
 })();

@@ -30,3 +30,24 @@
 
 /* archive: a solved day shows the default (tabby) sleeper */
 .arc-cat{overflow:visible}
+
+/* ---------- walk-in (js/cats.js) ---------- */
+/* the curled cat waits hidden while its walker trots over; dropping the class replays the settle-in squash */
+.cell.cat-arriving svg{opacity:0;animation:none}
+.cat-walk-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px;z-index:2}
+.cat-walker{position:absolute;left:0;top:0;will-change:transform,opacity;
+  filter:drop-shadow(0 0 1.2px rgba(255,255,255,.95)) drop-shadow(0 0 2.4px rgba(255,255,255,.6)) drop-shadow(0 1px 0 rgba(43,47,69,.18))}
+.cw-face,.cw{display:block;width:100%;height:100%}
+.cw{overflow:visible}
+.cw .leg{transform-box:fill-box;transform-origin:50% 10%}
+.cw .leg.far{filter:brightness(.82)}
+.cw.walking .leg{animation:cw-leg .22s linear infinite alternate}
+/* trot: diagonal pairs (far front + near hind) swing together */
+.cw.walking .leg:nth-of-type(2),.cw.walking .leg:nth-of-type(4){animation-direction:alternate-reverse}
+.cw.walking .bodyg{animation:cw-bob .11s ease-in-out infinite alternate}
+@keyframes cw-leg{from{transform:rotate(26deg)}to{transform:rotate(-26deg)}}
+@keyframes cw-bob{from{transform:translateY(0)}to{transform:translateY(-1.6px)}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cat-walker{
+  filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}}
+:root[data-theme="dark"] .cat-walker{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}
+@media (prefers-reduced-motion:reduce){.cat-walk-layer{display:none}.cell.cat-arriving svg{opacity:1}}
