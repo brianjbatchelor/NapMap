@@ -112,13 +112,14 @@ function hint(){if(done)return;startClock();const n=P.n;
 /* ---------- input ---------- */
 const board=$('board');let drag=null,lastTap={k:-1,t:0,prev:null};
 const cellAt=(x,y)=>{const el=document.elementFromPoint(x,y)?.closest('.cell');return el&&board.contains(el)?+el.dataset.k:null};
-board.addEventListener('pointerdown',e=>{if(done)return;const k=cellAt(e.clientX,e.clientY);if(k==null)return;e.preventDefault();
+board.addEventListener('pointerdown',e=>{if(done||e.button!==0)return;const k=cellAt(e.clientX,e.clientY);if(k==null)return;e.preventDefault();
   board.setPointerCapture(e.pointerId);drag={start:k,last:k,moved:false,paint:cells[k]===0?1:0,snap:false}});
 board.addEventListener('pointermove',e=>{if(!drag)return;const k=cellAt(e.clientX,e.clientY);if(k==null||k===drag.last)return;
   if(!drag.moved){drag.moved=true;snapshot();drag.snap=true;startClock();setMark(drag.start,drag.paint)}
   drag.last=k;setMark(k,drag.paint);render()});
 board.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;if(d.moved){render();return}tap(d.start)});
 board.addEventListener('pointercancel',()=>{drag=null});
+board.addEventListener('contextmenu',e=>e.preventDefault()); // long-press and right-click: no menu over the board
 function tap(k){const now=Date.now();
   if(lastTap.k===k&&now-lastTap.t<330){ // double tap: undo the single-tap mark, then place a cat
     if(lastTap.prev!=null){cells[k]=lastTap.prev;undo.pop()}lastTap={k:-1,t:0,prev:null};placeCat(k);return}
