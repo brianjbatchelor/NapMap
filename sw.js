@@ -1,6 +1,6 @@
-/* Offline support: precache the app shell, serve cache-first, refresh in the background.
+/* Offline support: precache the app shell; serve game files network-first (cache when offline or slow), fonts cache-first.
    Bump VERSION whenever any shell file changes. */
-const VERSION = 'napmap-v13';
+const VERSION = 'napmap-v14';
 const SHELL = ['./', 'index.html', 'css/style.css', 'css/furniture.css', 'js/furniture.js', 'js/generator.js', 'js/game.js',
   'css/archive.css', 'js/archive.js',
   'css/polish.css', 'js/polish.js', 'js/gen-worker.js',
@@ -24,10 +24,14 @@ self.addEventListener('fetch', e => {
   if (!sameOrigin && !isFont) return; // leave API calls (e.g. leaderboard) to the network
   e.respondWith(caches.open(VERSION).then(async cache => {
     const hit = await cache.match(req, {ignoreSearch: sameOrigin});
+    if (isFont && hit) return hit; // fonts never change: cache first
+    // Game files: network first so updates show on the next load; fall back to the cache when offline or slow.
     const net = fetch(req).then(res => {
       if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
       return res;
-    }).catch(() => hit);
-    return hit || net;
+    });
+    if (!hit) return net;
+    const slow = new Promise(r => setTimeout(() => r(hit), 3000));
+    return Promise.race([net.catch(() => hit), slow]);
   }));
 });
