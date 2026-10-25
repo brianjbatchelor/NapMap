@@ -105,9 +105,12 @@ function hint(){if(done)return;startClock();const n=P.n;
     const open=ks.filter(k=>cells[k]===0&&!blocked.has(k));if(!best||open.length<best.length)best=open}
   if(!best)return;const k=best.length===1&&isSol(best[0])?best[0]:best.find(k=>!isSol(k));
   const blockedOpen=[...blocked].find(k=>cells[k]===0);
-  if(k==null&&blockedOpen==null)return;
-  const target=blockedOpen!=null&&(k==null||!$('autox').checked)?blockedOpen:k;
-  if(isSol(target)&&cells[target]===0){placeCat(target)}else{snapshot();cells[target]=1;render()}
+  /* nothing left to deduce: a cat's square must have been crossed out by mistake, so clear that cross */
+  const fix=k==null&&blockedOpen==null?cells.findIndex((s,q)=>s===1&&isSol(q)):-1;
+  if(k==null&&blockedOpen==null&&fix<0)return;
+  const target=fix>=0?fix:blockedOpen!=null&&(k==null||!$('autox').checked)?blockedOpen:k;
+  if(fix>=0){snapshot();cells[target]=0;render()}
+  else if(isSol(target)&&cells[target]===0){placeCat(target)}else{snapshot();cells[target]=1;render()}
   const e=cellEls[target];e.classList.remove('hint');void e.offsetWidth;e.classList.add('hint')}
 
 /* ---------- input ---------- */
