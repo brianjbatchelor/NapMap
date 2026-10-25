@@ -124,10 +124,10 @@ function tap(k){const now=Date.now();
     if(lastTap.prev!=null){cells[k]=lastTap.prev;undo.pop()}lastTap={k:-1,t:0,prev:null};placeCat(k);return}
   const prev=cells[k];if(prev===0||prev===1){snapshot();startClock();cells[k]=prev===0?1:0;render();lastTap={k,t:now,prev}}
   else lastTap={k,t:now,prev:null}}
-board.addEventListener('keydown',e=>{const el=e.target.closest('.cell');if(!el||done&&!/Arrow/.test(e.key))return;const k=+el.dataset.k,n=P.n;let q=null;
+board.addEventListener('keydown',e=>{const el=e.target.closest('.cell');if(!el||e.ctrlKey||e.metaKey||e.altKey||done&&!/Arrow/.test(e.key))return;const k=+el.dataset.k,n=P.n;let q=null;
   if(e.key==='ArrowRight')q=k%n<n-1?k+1:k;else if(e.key==='ArrowLeft')q=k%n?k-1:k;else if(e.key==='ArrowDown')q=k+n<n*n?k+n:k;else if(e.key==='ArrowUp')q=k-n>=0?k-n:k;
-  else if(e.key===' '||e.key==='x'){e.preventDefault();if(cells[k]<2){snapshot();startClock();cells[k]=cells[k]?0:1;render()}}
-  else if(e.key==='Enter'||e.key==='c'){e.preventDefault();placeCat(k)}
+  else if(e.key===' '||e.key.toLowerCase()==='x'){e.preventDefault();if(cells[k]<2){snapshot();startClock();cells[k]=cells[k]?0:1;render()}}
+  else if(e.key==='Enter'||e.key.toLowerCase()==='c'){e.preventDefault();placeCat(k)}
   if(q!=null){e.preventDefault();el.tabIndex=-1;cellEls[q].tabIndex=0;cellEls[q].focus()}});
 
 $('undo').onclick=()=>{if(!undo.length||done)return;const prev=undo.pop();cells=cells.map((s,k)=>s===3?3:prev[k]===3?3:prev[k]);render()};
