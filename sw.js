@@ -1,6 +1,6 @@
 /* Offline support: precache the app shell, serve cache-first, refresh in the background.
    Bump VERSION whenever any shell file changes. */
-const VERSION = 'sunspots-v1';
+const VERSION = 'napmap-v2';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/generator.js', 'js/game.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 

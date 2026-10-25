@@ -1,7 +1,7 @@
 {
-  "name": "Sunspots",
-  "short_name": "Sunspots",
-  "description": "An ad-free cat-placement logic puzzle.",
+  "name": "NapMap",
+  "short_name": "NapMap",
+  "description": "An ad-free cat logic puzzle: every cat needs a bed of its own.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sunspots</title>
-<meta name="description" content="Sunspots: an ad-free cat-placement logic puzzle. One cat per row, column and colored patch.">
+<title>NapMap</title>
+<meta name="description" content="NapMap: an ad-free cat logic puzzle. Every cat needs a bed of its own: one per row, column and bed, and no snuggling.">
 <meta name="theme-color" content="#EDF0F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141A2A" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NapMap">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&family=Nunito:wght@500;700;800&display=swap">
 <link rel="stylesheet" href="css/style.css">
@@ -25,14 +26,15 @@
   </symbol>
   <symbol id="x" viewBox="0 0 20 20"><path stroke="currentColor" stroke-width="3.2" stroke-linecap="round" d="M4 4 L16 16 M16 4 L4 16"/></symbol>
   <symbol id="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3 1.7-1.8 3.1-3 5.3-3 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></symbol>
+  <symbol id="moon" viewBox="0 0 32 32"><path fill="currentColor" d="M20 4a12 12 0 1 0 9 19A10 10 0 0 1 20 4z"/><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M23 6h4l-4 4h4"/></symbol>
   <symbol id="sun" viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="currentColor"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l2.8 2.8M23.2 23.2 26 26M6 26l2.8-2.8M23.2 8.8 26 6"/></g></symbol>
 </svg>
 
 <div class="wrap">
   <header>
     <div>
-      <h1><svg class="sun"><use href="#sun"/></svg>Sunspots</h1>
-      <div class="tag">Every cat gets its own patch of sun.</div>
+      <h1><svg class="moon"><use href="#moon"/></svg>NapMap</h1>
+      <div class="tag">Every cat needs a bed of its own.</div>
     </div>
   </header>
 
@@ -69,9 +71,9 @@
   <section class="rules">
     <h3>How to play</h3>
     <ul>
-      <li>Place one cat in every <b>colored patch</b>.</li>
+      <li>Every cat needs its own <b>bed</b>: one cat per patterned area.</li>
       <li>Only one cat per <b>row</b> and per <b>column</b>.</li>
-      <li>Cats can't <b>touch</b>, not even corner to corner.</li>
+      <li>No snuggling: cats can't <b>touch</b>, not even corner to corner.</li>
       <li><b>Tap</b> a square to cross it out. <b>Drag</b> to cross out several.</li>
       <li><b>Double-tap</b> to place a cat. A wrong cat costs a heart, and you have three.</li>
     </ul>

@@ -1,9 +1,12 @@
 (()=>{
 const {generate}=window.SunGen;
+/* ---------- beds: each region is a different storybook bed or cat tree ---------- */
+const BEDS=['Stripy Stacked Snoozery','Polka-Dot Pouf','Swirly-Whirly Cushion','Zig-Zag Hammock','Checkered Cot',
+  'Sisal Tippy Tower','Scallop Pillow Pile','Plaid Napsack','Cloud-Fluff Couch','Wobble-Top Perch'];
 /* ---------- state ---------- */
 const $=id=>document.getElementById(id);
-const store={get(k,d){try{const v=localStorage.getItem('sunspots:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
-  set(k,v){try{localStorage.setItem('sunspots:'+k,JSON.stringify(v))}catch(e){}}};
+const store={get(k,d){try{const v=localStorage.getItem('napmap:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('napmap:'+k,JSON.stringify(v))}catch(e){}}};
 let P,cells,lives,undo,startT,elapsed,timerId,done,mode,cellEls=[];
 const keyOf=d=>d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
 const today=()=>keyOf(new Date());
@@ -26,19 +29,19 @@ function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=n
 function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;b.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
   if(cellEls.length!==n*n||b.dataset.seed!=P.seed){b.innerHTML='';cellEls=[];b.dataset.seed=P.seed;
     for(let k=0;k<n*n;k++){const r=k/n|0,c=k%n,g=P.reg[k],e=document.createElement('div');
-      e.className='cell';e.dataset.k=k;e.setAttribute('role','gridcell');e.tabIndex=k===0?0:-1;
-      e.style.background=`var(--r${P.colors[g]})`;
-      const thick=2.5,thin=.5;
-      e.style.borderTopWidth=(r>0&&P.reg[k-n]!==g?thick:r>0?thin:0)+'px';
-      e.style.borderLeftWidth=(c>0&&P.reg[k-1]!==g?thick:c>0?thin:0)+'px';
+      e.className='cell';e.dataset.k=k;e.dataset.bed=P.colors[g];e.setAttribute('role','gridcell');e.tabIndex=k===0?0:-1;
+      const up=r===0||P.reg[k-n]!==g,dn=r===n-1||P.reg[k+n]!==g,lf=c===0||P.reg[k-1]!==g,rt=c===n-1||P.reg[k+1]!==g,R='22%';
+      e.style.borderRadius=`${up&&lf?R:0} ${up&&rt?R:0} ${dn&&rt?R:0} ${dn&&lf?R:0}`;e.title=BEDS[P.colors[g]];
+      const side=(edge,outer)=>outer?'0px solid transparent':edge?'1.5px solid var(--line)':'.5px solid var(--seam)';
+      e.style.borderTop=side(up,r===0);e.style.borderBottom=side(dn,r===n-1);e.style.borderLeft=side(lf,c===0);e.style.borderRight=side(rt,c===n-1);
       b.appendChild(e);cellEls.push(e)}}
   cellEls.forEach((e,k)=>{const s=cells[k],cls='cell'+(s===2?' cat':'')+(s===3?' wrong':'');
     if(e.dataset.s!=s){e.dataset.s=s;e.className=cls;
       e.innerHTML=s===2?'<svg><use href="#cat"/></svg>':(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
-    const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
+    const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${BEDS[P.colors[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
   const lab=mode==='daily'?(P.dateKey===today()?'Daily · ':'Past daily · ')+dateOf(P.dateKey).toLocaleDateString(undefined,{month:'short',day:'numeric'}):`${P.n}×${P.n} · #${(P.seed%100000).toString().padStart(5,'0')}`;
   $('label').textContent=lab;
-  document.querySelectorAll('.chip').forEach(ch=>ch.setAttribute('aria-pressed',ch.dataset.mode==mode));
+  document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.setAttribute('aria-pressed',ch.dataset.mode==mode));
   $('undo').disabled=!undo.length||done;$('hint').disabled=done;renderStats()}
 function renderHearts(){$('hearts').innerHTML=[0,1,2].map(i=>`<svg class="${i>=lives?'lost':''}"><use href="#heart"/></svg>`).join('')}
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
@@ -71,11 +74,11 @@ function checkWin(){if(cells.filter(s=>s===2).length===P.n){done=true;stopClock(
     if(st.last!==td){const y=new Date();y.setDate(y.getDate()-1);const yd=y.getFullYear()*10000+(y.getMonth()+1)*100+y.getDate();
       st.n=st.last===yd?st.n+1:1;st.last=td;store.set('streak',st)}}
   cells=cells.map(s=>s===2?2:s===3?3:1);render();
-  showCard(`<h2>All cats sunning!</h2><p>Solved in ${fmt(t)}${nb?' · new best':''}${lives<3?` · ${3-lives} heart${3-lives>1?'s':''} lost`:''}</p>
+  showCard(`<h2>Everybody's napping!</h2><p>Solved in ${fmt(t)}${nb?' · new best':''}${lives<3?` · ${3-lives} heart${3-lives>1?'s':''} lost`:''}</p>
     <div class="win-extra" id="win-extra"></div>
     <div class="row">${mode==='daily'?'<button class="btn primary" data-act="practice">Play a Hard puzzle</button>':'<button class="btn primary" data-act="new">Next puzzle</button>'}</div>`);emit('win',info())}}
 function lose(){done=true;stopClock();emit('lose',info());
-  showCard(`<h2>Out of hearts</h2><p>Three wrong cats. Try the same puzzle again or see where they belonged.</p>
+  showCard(`<h2>Out of hearts</h2><p>Three cats in the wrong beds. Try the same puzzle again or see where they belonged.</p>
   <div class="row"><button class="btn primary" data-act="retry">Try again</button><button class="btn" data-act="reveal">Show solution</button></div>`)}
 function showCard(html){const o=$('overlay');o.innerHTML=`<div class="card">${html}</div>`;o.hidden=false}
 $('overlay').addEventListener('click',e=>{const a=e.target.closest('[data-act]')?.dataset.act;if(!a)return;
@@ -120,13 +123,13 @@ $('undo').onclick=()=>{if(!undo.length||done)return;const prev=undo.pop();cells=
 $('hint').onclick=hint;
 $('restart').onclick=reset;
 $('new').onclick=()=>newPuzzle(mode==='daily'?'8':mode);
-document.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>newPuzzle(ch.dataset.mode));
+document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.onclick=()=>newPuzzle(ch.dataset.mode));
 try{$('autox').checked=store.get('autox',true)}catch(e){}
 $('autox').onchange=()=>store.set('autox',$('autox').checked);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&startT){elapsed+=Date.now()-startT;startT=null;clearInterval(timerId);startT=null;window._paused=true}
   else if(!document.hidden&&window._paused&&!done){window._paused=false;startT=Date.now();timerId=setInterval(tick,250)}});
 
-window.Sunspots={on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,
+window.Sunspots=window.NapMap={BEDS,on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,
   get puzzle(){return P},get mode(){return mode},get done(){return done}};
 newPuzzle(store.get('mode','daily'));
 })();
