@@ -70,6 +70,9 @@ h1 .moon{width:32px;height:32px;color:var(--sun)}
 .card h2{font-family:var(--display);font-size:1.7rem;margin:0}
 .card p{margin:0;color:var(--muted);font-weight:700}
 .card .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+/* very narrow phones (e.g. 280px folded): keep the card inside the board; scroll rather than spill over the controls */
+.overlay{overflow:auto;place-items:safe center}
+@media (max-width:340px){.card{padding:14px 12px;gap:6px;max-width:94%}.card h2{font-size:1.3rem}.card p{font-size:.85rem}}
 .controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .btn{font:inherit;font-weight:800;border:2px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:12px;
   padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.85rem}
