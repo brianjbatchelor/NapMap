@@ -37,7 +37,7 @@
 .lb-btn.danger{background:var(--heart);color:#fff}
 .lb-btn.quiet{border-color:transparent;color:var(--muted);background:transparent}
 .lb-btn:active{transform:translateY(1px)}
-.lb-btn:focus-visible,.lb-chip:focus-visible,.lb-input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.lb-btn:focus-visible,.lb-chip:focus-visible,.lb-input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .lb-icon{padding:0;width:36px;height:36px;display:grid;place-items:center;border-radius:50%}
 .lb-icon svg{width:18px;height:18px}
 .lb-icon[hidden]{display:none}
