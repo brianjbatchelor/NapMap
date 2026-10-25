@@ -1,0 +1,32 @@
+/* NapMap cats: a placed cat is a curled-up sleeper (<symbol id="cat"> in index.html). The symbol reads its colors from
+   custom properties, which inherit into the <use> tree, so each .coat-* class below is just a palette.
+   --fur body, --st stripes (--sto their opacity), --pa/--pb patches, --pts siamese mask, --bib tuxedo blaze,
+   --ear/--tip/--paw points, --eye closed-eye line, --earin inner-ear pink opacity, --zz the little "z". */
+.coat-tabby{--fur:#F4A259;--st:#D9762B;--sto:1}
+.coat-black{--fur:#52597A;--sto:0;--eye:#E6E9F4}
+.coat-white{--fur:#FFFFFF;--sto:0}
+.coat-grey{--fur:#A7B0C6;--st:#808AA6;--sto:.8}
+.coat-calico{--fur:#FFF6EA;--pa:#F29A4A;--pb:#52597A;--sto:0}
+.coat-tuxedo{--fur:#52597A;--bib:#FFFFFF;--paw:#FFFFFF;--tip:#FFFFFF;--sto:0;--eye:#E6E9F4}
+.coat-siamese{--fur:#F6EBD6;--pts:#7A5A45;--ear:#7A5A45;--tip:#7A5A45;--sto:0;--eye:#F6EBD6;--earin:0}
+.zz{--zz:1}
+
+/* bigger than other marks, with a soft light halo so it reads on patterned fabric and furniture art */
+.cell.cat svg{width:86%;height:86%;color:inherit;overflow:visible;
+  filter:drop-shadow(0 0 1.2px rgba(255,255,255,.95)) drop-shadow(0 0 2.4px rgba(255,255,255,.6)) drop-shadow(0 1px 0 rgba(43,47,69,.18));
+  transform-origin:50% 88%;animation:cat-settle .26s cubic-bezier(.3,.7,.4,1)}
+.board-wrap[data-n="10"] .cell.cat svg{width:92%;height:92%}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cell.cat svg{
+  filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}}
+:root[data-theme="dark"] .cell.cat svg{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}
+
+/* settle in: drops in, squashes onto the cushion, then relaxes */
+@keyframes cat-settle{
+  0%{transform:translateY(-14%) scale(.82,1.1);opacity:.4}
+  45%{transform:translateY(0) scale(1.14,.84);opacity:1}
+  75%{transform:scale(.97,1.03)}
+  100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.cell.cat svg{animation:none}}
+
+/* archive: a solved day shows the default (tabby) sleeper */
+.arc-cat{overflow:visible}

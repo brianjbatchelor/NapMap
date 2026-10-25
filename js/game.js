@@ -48,12 +48,15 @@ function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat($
       b.appendChild(e);cellEls.push(e)}}
   cellEls.forEach((e,k)=>{const s=cells[k],cls='cell'+(s===2?' cat':'')+(s===3?' wrong':'');
     if(e.dataset.s!=s){e.dataset.s=s;e.className=cls;
-      e.innerHTML=s===2?'<svg><use href="#cat"/></svg>':(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
+      e.innerHTML=s===2?`<svg class="${catCoat(k)}" viewBox="0 0 64 64"><use href="#cat"/></svg>`:(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
     const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${BEDS[P.colors[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
   const lab=mode==='daily'?(P.dateKey===today()?'Daily · ':'Past daily · ')+dateOf(P.dateKey).toLocaleDateString(undefined,{month:'short',day:'numeric'}):`${P.n}×${P.n} · #${(P.seed%100000).toString().padStart(5,'0')}`;
   $('label').textContent=lab;
   document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.setAttribute('aria-pressed',ch.dataset.mode==mode));
   $('undo').disabled=!undo.length||done;$('hint').disabled=done;renderStats()}
+/* sleeping-cat coat, stable per puzzle and cell; stepping by 3 through 7 coats keeps nearby beds different (css/cats.css) */
+const COATS=['tabby','black','white','grey','calico','tuxedo','siamese'];
+function catCoat(k){const h=Math.imul(P.seed^0x5bd1e995,2654435761)>>>0;return 'coat-'+COATS[(h+P.reg[k]*3)%7]+(((h>>>11)+k*5)%3?'':' zz')}
 function renderHearts(){$('hearts').innerHTML=[0,1,2].map(i=>`<svg class="${i>=lives?'lost':''}"><use href="#heart"/></svg>`).join('')}
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function tick(){$('timer').textContent=fmt(elapsed+(startT?Date.now()-startT:0))}

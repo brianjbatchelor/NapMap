@@ -19,14 +19,52 @@
 <link rel="stylesheet" href="css/archive.css">
 <link rel="stylesheet" href="css/polish.css">
 <link rel="stylesheet" href="css/leaderboard.css">
+<link rel="stylesheet" href="css/cats.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <clipPath id="cat-body-clip"><ellipse cx="36" cy="37" rx="24" ry="18"/></clipPath>
+    <clipPath id="cat-head-clip"><ellipse cx="23" cy="38" rx="15" ry="12.5"/></clipPath>
+  </defs>
+  <!-- curled sleeping cat; coats come from custom properties set by .coat-* classes in css/cats.css (defaults: orange tabby) -->
   <symbol id="cat" viewBox="0 0 64 64">
-    <path fill="currentColor" d="M10 8 L24 20 Q32 17 40 20 L54 8 Q57 22 54 32 Q57 52 32 56 Q7 52 10 32 Q7 22 10 8Z"/>
-    <path fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" d="M19 34 Q23 38 27 34 M37 34 Q41 38 45 34"/>
-    <path fill="var(--sun)" d="M29 42 h6 l-3 3z"/>
-    <path fill="none" stroke="var(--bg)" stroke-width="2" stroke-linecap="round" d="M32 45 v2 M14 43 h8 M42 43 h8"/>
+    <g stroke="#2B2F45" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="36" cy="37" rx="24" ry="18" stroke-width="3" style="fill:var(--fur,#F4A259)"/>
+      <g clip-path="url(#cat-body-clip)" stroke="none">
+        <ellipse cx="45" cy="25" rx="12" ry="8" style="fill:var(--pa,none)"/>
+        <ellipse cx="54" cy="43" rx="9" ry="8" style="fill:var(--pb,none)"/>
+        <path d="M39 20Q43 26 40 32M47 20.5Q51.5 27 48.5 33.5M55 24Q58.5 30 56 36" fill="none" stroke-width="3" style="stroke:var(--st,#D9762B);opacity:var(--sto,1)"/>
+      </g>
+      <path d="M57 44Q55 56.5 38 56.5Q24 56.5 15 52" fill="none" stroke-width="10.5"/>
+      <path d="M57 44Q55 56.5 38 56.5Q24 56.5 15 52" fill="none" stroke-width="6.5" style="stroke:var(--fur,#F4A259)"/>
+      <path d="M57 44Q55 56.5 38 56.5Q24 56.5 15 52" fill="none" stroke-width="6.5" stroke-linecap="butt" stroke-dasharray="2.6 5" stroke-dashoffset="-3" style="stroke:var(--st,#D9762B);opacity:var(--sto,1)"/>
+      <path d="M22 55Q18 54 15 52" fill="none" stroke-width="6.5" style="stroke:var(--tip,var(--fur,#F4A259))"/>
+      <g transform="rotate(-7 23 38)">
+        <path d="M10.6 33L9.4 18.6Q9.4 16.6 11 17.6L21.5 25.8Z" stroke-width="3" style="fill:var(--ear,var(--fur,#F4A259))"/>
+        <path d="M24.5 25.8L35 17.6Q36.6 16.6 36.6 18.6L35.4 33Z" stroke-width="3" style="fill:var(--ear,var(--fur,#F4A259))"/>
+        <path d="M12.6 27L12 21.4L17 25.4ZM29 25.4L34 21.4L33.4 27Z" fill="#F4A3B4" stroke="none" style="opacity:var(--earin,1)"/>
+        <ellipse cx="23" cy="38" rx="15" ry="12.5" stroke-width="3" style="fill:var(--fur,#F4A259)"/>
+        <g clip-path="url(#cat-head-clip)" stroke="none">
+          <ellipse cx="32" cy="30" rx="8.5" ry="7" style="fill:var(--pa,none)"/>
+          <ellipse cx="11" cy="33" rx="6.5" ry="6" style="fill:var(--pb,none)"/>
+          <ellipse cx="23" cy="43.5" rx="9" ry="7" style="fill:var(--pts,none)"/>
+          <path d="M23 32Q21 39 17.5 43Q16.5 51 23 51Q29.5 51 28.5 43Q25 39 23 32Z" style="fill:var(--bib,none)"/>
+          <path d="M19.5 26.5v4.5M23 26v5M26.5 26.5v4.5" fill="none" stroke-width="1.9" stroke-linecap="round" style="stroke:var(--st,#D9762B);opacity:var(--sto,1)"/>
+        </g>
+        <ellipse cx="23" cy="38" rx="15" ry="12.5" fill="none" stroke-width="3"/>
+        <ellipse cx="12.8" cy="43.2" rx="2.6" ry="1.6" fill="#F28FA6" stroke="none" opacity=".55"/>
+        <ellipse cx="33.2" cy="43.2" rx="2.6" ry="1.6" fill="#F28FA6" stroke="none" opacity=".55"/>
+        <path d="M14.5 38.6Q17.6 41.8 20.6 38.6M25.4 38.6Q28.4 41.8 31.5 38.6" fill="none" stroke-width="2.1" style="stroke:var(--eye,#2B2F45)"/>
+        <path d="M21.3 42.6H24.7L23 44.6Z" fill="#F07A96" stroke-width="1" style="stroke:var(--eye,#2B2F45)"/>
+      </g>
+      <ellipse cx="18" cy="51.6" rx="4" ry="2.9" stroke-width="2.2" style="fill:var(--paw,var(--fur,#F4A259))"/>
+      <ellipse cx="27.6" cy="52.4" rx="4" ry="2.9" stroke-width="2.2" style="fill:var(--paw,var(--fur,#F4A259))"/>
+      <g fill="none" style="opacity:var(--zz,0)">
+        <path d="M46 5.5h7.5l-7.5 8.5h7.5" stroke-width="4.6"/>
+        <path d="M46 5.5h7.5l-7.5 8.5h7.5" stroke="#FFFFFF" stroke-width="2"/>
+      </g>
+    </g>
   </symbol>
   <symbol id="x" viewBox="0 0 20 20"><path stroke="currentColor" stroke-width="3.2" stroke-linecap="round" d="M4 4 L16 16 M16 4 L4 16"/></symbol>
   <symbol id="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3 1.7-1.8 3.1-3 5.3-3 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></symbol>
