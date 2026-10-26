@@ -112,22 +112,25 @@ function namer(P,names){const nm=g=>names&&names[g]?'the '+names[g]:'area '+(g+1
   const unit=u=>u.type==='row'?'row '+(u.index+1):u.type==='col'?'column '+(u.index+1):nm(u.index);
   const spot=k=>`row ${(k/P.n|0)+1}, column ${k%P.n+1}`;
   return {nm,unit,spot}}
-function explain(P,s,names){const N=namer(P,names),U=s.units;
+/* W.why / W.so wrap the parts of the sentence that match the two highlight colors (identity for plain text) */
+const PLAIN={why:x=>x,so:x=>x};
+function explain(P,s,names,W=PLAIN){const N=namer(P,names),U=s.units,y=W.why,o=W.so;
   switch(s.rule){
-  case 'peers':return `The cat at ${N.spot(s.cat)} already rules out its row, its column, ${N.nm(P.reg[s.cat])} and every spot touching it, so those are crossed out.`;
-  case 'only':return `${cap(N.unit(U[0]))} has only one open spot left, so a cat must nap there.`;
+  case 'peers':return `${y('The cat at '+N.spot(s.cat))} already rules out its row, its column, ${N.nm(P.reg[s.cat])} and every spot touching it, so ${o('those')} are crossed out.`;
+  case 'only':return `${y(cap(N.unit(U[0])))} has only one open spot left, so a cat must nap ${o('there')}.`;
   case 'line':{const[a,b]=U;
-    if(s.dir==='area')return `All the open spots in ${N.unit(a)} are in ${N.unit(b)}, so nothing else in ${N.unit(b)} can have a cat.`;
-    return `All the open spots in ${N.unit(a)} are in ${N.unit(b)}, so ${N.unit(a)}'s cat sleeps there and the rest of ${N.unit(b)} can't have a cat.`}
-  case 'squeeze':{const u=N.unit(U[0]);
-    if(s.cross.length===1)return `A cat at ${N.spot(s.cross[0])} would touch or line up with every open spot in ${u}, leaving it nowhere to nap, so no cat can go there.`;
+    if(s.dir==='area')return `All the open spots in ${y(N.unit(a))} are in ${o(N.unit(b))}, so nothing else in ${o(N.unit(b))} can have a cat.`;
+    return `All the open spots in ${y(N.unit(a))} are in ${o(N.unit(b))}, so ${N.unit(a)}'s cat sleeps there and the rest of ${o(N.unit(b))} can't have a cat.`}
+  case 'squeeze':{const u=y(N.unit(U[0]));
+    if(s.cross.length===1)return `A cat at ${o(N.spot(s.cross[0]))} would touch or line up with every open spot in ${u}, leaving it nowhere to nap, so no cat can go there.`;
     const cnt=s.cross.length===2?'either of the two':'any of the '+(s.cross.length<=5?WORDS[s.cross.length]:s.cross.length);
-    return `A cat on ${cnt} glowing spots would touch or line up with every open spot in ${u}, leaving it nowhere to nap, so they're crossed out.`}
+    return `A cat on ${o(cnt+' gold spots')} would touch or line up with every open spot in ${u}, leaving it nowhere to nap, so they're crossed out.`}
   case 'group':{const areas=U.filter(u=>u.type==='area'),lines=U.filter(u=>u.type!=='area'),k=areas.length,kw=WORDS[k]||k;
-    const lw=(s.dir==='row'?'rows ':'columns ')+join(lines.map(u=>String(u.index+1)));
-    const an=join(areas.map(u=>N.unit(u)));
-    if(s.fromArea)return `${cap(an)} only have open spots in ${lw}, so those ${kw} cats fill ${lw}. Nothing else in those ${s.dir==='row'?'rows':'columns'} can have a cat.`;
-    return `${cap(lw)} only have open spots in ${an}, so those ${kw} beds' cats all sleep in ${lw}. The rest of those beds can't have a cat.`}
+    let lw=(s.dir==='row'?'rows ':'columns ')+join(lines.map(u=>String(u.index+1)));
+    let an=join(areas.map(u=>N.unit(u)));
+    if(s.fromArea){an=y(an);lw=o(lw)}else{lw=y(lw);an=o(an)}
+    if(s.fromArea)return `${an.replace(/^(\W*)t/,'$1T')} only have open spots in ${lw}, so those ${kw} cats fill ${lw}. Nothing else in those ${s.dir==='row'?'rows':'columns'} can have a cat.`;
+    return `${lw.replace(/^(\W*)([a-z])/,(m,a,b)=>a+b.toUpperCase())} only have open spots in ${an}, so those ${kw} beds' cats all sleep in ${lw}. The rest of those beds can't have a cat.`}
   }
   return ''}
 
@@ -135,7 +138,7 @@ function explain(P,s,names){const N=namer(P,names),U=s.units;
    Returns {rule, level, action:'place'|'cross'|'none', cell, cells, units:[{type,index}], zone:[cells to highlight], text}.
    rule is one of peers, only, line, squeeze, group, error (a mark contradicts the solution), reveal (rules stall), done. */
 function nextStep(P,state,opts={}){const names=opts.names,C=context(P),st=toCandidates(P,state),n=P.n;
-  const out=(o)=>Object.assign({rule:'done',level:0,action:'none',cell:null,cells:[],units:[],zone:[],text:''},o);
+  const out=(o)=>Object.assign({rule:'done',level:0,action:'none',cell:null,cells:[],units:[],zone:[],why:[],so:[],text:''},o);
   const sol=P.sol?P.sol.map((c,r)=>r*n+c):null;
   if(sol){const isSol=k=>P.sol[k/n|0]===k%n;
     const badX=sol.find(k=>st[k]===X);
@@ -148,13 +151,26 @@ function nextStep(P,state,opts={}){const names=opts.names,C=context(P),st=toCand
     /* rules stall (should not happen on rated puzzles): give a free cat in the tightest area */
     let best=null;for(let g=0;g<n;g++){if(hasCat(st,C.areas[g]))continue;const o=openOf(st,C.areas[g]).length;if(!best||o<best.o)best={g,o}}
     const k=sol.find(q=>P.reg[q]===best.g);
-    return out({rule:'reveal',level:5,action:'place',cell:k,cells:[k],units:[{type:'area',index:best.g}],zone:C.areas[best.g].slice(),
+    return out({rule:'reveal',level:5,action:'place',cell:k,cells:[k],units:[{type:'area',index:best.g}],zone:C.areas[best.g].slice(),why:C.areas[best.g].slice(),so:[k],
       text:`This one needs a leap, so here's a free cat: one naps at ${namer(P,names).spot(k)}.`})}
   const zone=new Set();s.units.forEach(u=>u.cells.forEach(k=>zone.add(k)));
+  /* two-color highlight: why = what the reasoning starts from (blue), so = what it rules on (gold) */
+  const why=new Set(),so=new Set(),add=(set,ks)=>ks.forEach(k=>set.add(k));
+  if(s.rule==='peers'){why.add(s.cat);add(so,s.cross)}
+  else if(s.rule==='only'){add(why,s.units[0].cells);so.add(s.place)}
+  else if(s.rule==='line'){add(why,s.units[0].cells);add(so,s.units[1].cells)}
+  else if(s.rule==='squeeze'){add(why,openOf(st,s.units[0].cells));add(so,s.cross)}
+  else if(s.rule==='group'){const isA=u=>u.type==='area';
+    const areaU=s.units.filter(isA),lineU=s.units.filter(u=>!isA(u));
+    add(why,(s.fromArea?areaU:lineU).flatMap(u=>u.cells));add(so,(s.fromArea?lineU:areaU).flatMap(u=>u.cells))}
+  if(s.place!=null)so.add(s.place);if(s.rule!=='only')add(so,s.cross||[]);
+  why.forEach(k=>{if(so.has(k)&&!(s.cross||[]).includes(k)&&k!==s.place)so.delete(k)});
+  const RICH={why:x=>'\u27e6'+x+'\u27e7',so:x=>'\u27ea'+x+'\u27eb'};
   if(s.rule==='peers'){zone.add(s.cat);s.cross.forEach(k=>zone.add(k))}
   if(s.rule==='squeeze')s.cross.forEach(k=>zone.add(k));
   return out({rule:s.rule,level:s.level,action:s.place!=null?'place':'cross',cell:s.place!=null?s.place:null,
-    cells:s.place!=null?[s.place]:s.cross.slice(),units:s.units.map(u=>({type:u.type,index:u.index})),zone:[...zone],text:explain(P,s,names)})}
+    cells:s.place!=null?[s.place]:s.cross.slice(),units:s.units.map(u=>({type:u.type,index:u.index})),zone:[...zone],why:[...why],so:[...so],
+    text:explain(P,s,names),rich:explain(P,s,names,RICH)})}
 
 /* ---------- targeted generation ---------- */
 const TARGETS={daily:{min:2,max:3},6:{min:1,max:2},7:{min:2,max:3},8:{min:3,max:4},9:{min:4,max:4},10:{min:4,max:4,minSteps:16}};

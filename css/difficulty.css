@@ -17,12 +17,29 @@
 .hint-close:focus-visible{outline:3px solid var(--sun);outline-offset:1px}
 @keyframes hint-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 
-/* cells of the row, column or bed a hint talks about: a soft sunny wash that fades out */
-.cell.hint-zone::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
-  background:color-mix(in srgb,var(--sun) 30%,transparent);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--sun) 80%,transparent);
+/* hint highlights in two colors: blue = what the reasoning starts from, gold = what it rules on */
+:root{--why:#2F6FD0;--why-ink:#1E4F9E}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--why:#6FA8FF;--why-ink:#A9CBFF}}
+:root[data-theme="dark"]{--why:#6FA8FF;--why-ink:#A9CBFF}
+.cell.hint-why::after,.cell.hint-so::after,.cell.hint-zone::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   animation:hint-zone 1.6s ease-in-out infinite alternate}
-@keyframes hint-zone{from{opacity:1}to{opacity:.55}}
+.cell.hint-why::after{background:color-mix(in srgb,var(--why) 26%,transparent);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--why) 85%,transparent)}
+.cell.hint-so::after,.cell.hint-zone::after{background:color-mix(in srgb,var(--sun) 40%,transparent);box-shadow:inset 0 0 0 2.5px var(--sun)}
+@keyframes hint-zone{from{opacity:1}to{opacity:.6}}
+.hint-bubble .why,.hint-bubble .so{border-radius:5px;padding:0 3px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hint-bubble .why{background:color-mix(in srgb,var(--why) 18%,transparent);color:var(--why-ink);box-shadow:inset 0 -2px 0 var(--why)}
+.hint-bubble .so{background:color-mix(in srgb,var(--sun) 22%,transparent);box-shadow:inset 0 -2px 0 var(--sun)}
 .cell.hint-keep,.cell.hint-keep[data-bed]{box-shadow:inset 0 0 0 4px var(--sun)}
 
 .label .stars{color:var(--sun);letter-spacing:1px;white-space:nowrap;cursor:help;font-weight:800}
-@media (prefers-reduced-motion:reduce){.hint-bubble{animation:none}.cell.hint-zone::after{animation:none;opacity:.8}}
+@media (prefers-reduced-motion:reduce){.hint-bubble{animation:none}.cell.hint-why::after,.cell.hint-so::after,.cell.hint-zone::after{animation:none;opacity:.85}}
+
+/* axis numbers around the board (rows on the left, columns on top) */
+.board-frame{display:grid;grid-template-columns:20px minmax(0,1fr);grid-template-rows:20px auto;gap:2px 4px}
+.board-frame .board-wrap{grid-column:2;grid-row:2}
+.axis{display:grid;font-weight:800;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;user-select:none}
+.axis-cols{grid-column:2;grid-row:1;padding:0 3px;align-items:end}
+.axis-rows{grid-column:1;grid-row:2;padding:3px 0;justify-items:end}
+.axis span{display:grid;place-items:center;border-radius:6px;min-width:18px;min-height:18px;transition:background .15s,color .15s}
+.axis span.why{background:var(--why);color:#fff}
+.axis span.so{background:var(--sun);color:#1F2A44}

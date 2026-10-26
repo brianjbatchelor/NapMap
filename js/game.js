@@ -53,7 +53,11 @@ function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=n
   $('overlay').hidden=true;render();renderHearts();tick()}
 
 /* ---------- render ---------- */
-function render(){const n=P.n,b=$('board');b.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;b.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
+/* axis numbers: rows down the left, columns across the top, matching the numbers hints use */
+function renderAxes(n){const c=$('axis-cols'),r=$('axis-rows');if(!c||c.dataset.n==n)return;c.dataset.n=r.dataset.n=n;
+  const nums=Array.from({length:n},(_,i)=>`<span>${i+1}</span>`).join('');c.innerHTML=r.innerHTML=nums;
+  c.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;r.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`}
+function render(){const n=P.n,b=$('board');renderAxes(n);b.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;b.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
   /* --- styles: room look for cozy/boxy boards (css/room.css, blocks drawn by js/furniture.js) --- */
   const room=P.style==='cozy'||P.style==='boxy';
   /* --- end styles --- */
@@ -146,16 +150,30 @@ const STAR_TIPS=['solvable by spotting rows, columns and beds with one open spot
   'needs spotting groups of beds that share the same rows or columns'];
 let hintTimer=0;
 /* the hint's highlight stays until the player's next move on the board, a new hint, or closing the bubble */
-function clearHintMarks(){clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone','hint-keep'))}
+function clearHintMarks(){clearTimeout(hintTimer);cellEls.forEach(e=>e.classList.remove('hint-zone','hint-why','hint-so','hint-keep'));
+  document.querySelectorAll('.axis span').forEach(e=>e.className='')}
+/* hint text arrives with \u27e6why\u27e7 and \u27easo\u27eb markers; color those words to match the board */
+function setHintText(el,rich,plain){el.textContent='';if(!rich){el.textContent=plain;return}
+  rich.split(/(\u27e6[^\u27e7]*\u27e7|\u27ea[^\u27eb]*\u27eb)/).forEach(part=>{if(!part)return;
+    const m=part[0];if(m==='\u27e6'||m==='\u27ea'){const s=document.createElement('span');s.className=m==='\u27e6'?'why':'so';s.textContent=part.slice(1,-1);el.appendChild(s)}
+    else el.appendChild(document.createTextNode(part))})}
 function hideHint(){const b=$('hint-bubble');if(b)b.hidden=true;clearHintMarks()}
 function hint(){if(done)return;startClock();
   const step=DIFF.nextStep(P,cells,{names:P.colors.map(c=>BEDS[c])});
   if(step.action==='place'){if(cells[step.cell]===0)placeCat(step.cell)}
   else if(step.action==='cross'){snapshot();step.cells.forEach(k=>{if(cells[k]===0)cells[k]=1});render()}
   clearHintMarks();cellEls.forEach(e=>e.classList.remove('hint'));void $('board').offsetWidth;
-  step.zone.forEach(k=>cellEls[k].classList.add('hint-zone'));step.cells.forEach(k=>cellEls[k].classList.add('hint'));
-  step.cells.forEach(k=>cellEls[k].classList.add('hint-keep'));
-  const b=$('hint-bubble');if(b&&step.text){b.hidden=false;b.dataset.rule=step.rule;$('hint-text').textContent=step.text}}
+  /* two colors: blue for what the reasoning starts from, gold for what it rules on */
+  const why=new Set(step.why||[]),so=new Set(step.so||[]);
+  if(!why.size&&!so.size)step.zone.forEach(k=>so.add(k));
+  why.forEach(k=>cellEls[k].classList.add('hint-why'));so.forEach(k=>{if(!why.has(k))cellEls[k].classList.add('hint-so')});
+  step.cells.forEach(k=>cellEls[k].classList.add('hint','hint-keep'));
+  /* light up the row and column numbers the hint names, in the matching color */
+  const n=P.n;(step.units||[]).forEach(u=>{if(u.type==='area')return;
+    const ks=Array.from({length:n},(_,i)=>u.type==='row'?u.index*n+i:i*n+u.index);
+    const role=ks.filter(k=>why.has(k)).length>=ks.filter(k=>so.has(k)).length?'why':'so';
+    const lab=$(u.type==='row'?'axis-rows':'axis-cols').children[u.index];if(lab)lab.className=role});
+  const b=$('hint-bubble');if(b&&step.text){b.hidden=false;b.dataset.rule=step.rule;setHintText($('hint-text'),step.rich,step.text)}}
 $('hint-close').onclick=hideHint;
 $('board').addEventListener('pointerdown',clearHintMarks);
 $('board').addEventListener('keydown',e=>{if(!/Arrow|Tab/.test(e.key))clearHintMarks()});

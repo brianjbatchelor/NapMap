@@ -109,9 +109,13 @@
     <div class="timer" id="timer">0:00</div>
   </div>
 
-  <div class="board-wrap">
-    <div class="board" id="board" role="grid" aria-label="Puzzle board"></div>
-    <div class="overlay" id="overlay" hidden></div>
+  <div class="board-frame">
+    <div class="axis axis-cols" id="axis-cols" aria-hidden="true"></div>
+    <div class="axis axis-rows" id="axis-rows" aria-hidden="true"></div>
+    <div class="board-wrap">
+      <div class="board" id="board" role="grid" aria-label="Puzzle board"></div>
+      <div class="overlay" id="overlay" hidden></div>
+    </div>
   </div>
 
   <div class="hint-live" aria-live="polite">
