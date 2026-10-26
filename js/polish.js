@@ -26,9 +26,13 @@ const sfx={
   bonk(){tone({f0:180,f1:85,dur:.2,vol:.12,attack:.004});tone({type:'triangle',f0:120,f1:70,dur:.16,vol:.05})},
   tick(){tone({type:'triangle',f0:1900+Math.random()*300,dur:.03,vol:.025,attack:.002})},
   win(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone({type:'triangle',f0:f,dur:.32,vol:.06,at:.15+i*.09}));
-    tone({f0:1567.98,dur:.5,vol:.03,at:.15+4*.09})}
+    tone({f0:1567.98,dur:.5,vol:.03,at:.15+4*.09})},
+  /* zoomies (js/cats.js): a soft scramble of paw ticks over a short rising whoosh */
+  zoomies(){for(let i=0;i<9;i++)tone({type:'triangle',f0:1500+Math.random()*700,dur:.025,vol:.018,attack:.002,at:i*.045+Math.random()*.02});
+    tone({f0:260,f1:900,dur:.38,vol:.025,attack:.06,at:.05})}
 };
 const play=name=>{if(ready())try{sfx[name]()}catch(e){}};
+window.NapMapSound={play};
 
 /* crossed-out ticks: watch cells flip from empty (0) to crossed (1); rate-limited, and muted
    right after a cat or win, when auto-cross / the win sweep flips many cells at once */

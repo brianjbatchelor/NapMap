@@ -124,11 +124,12 @@ function head(id,yawn){return `<path d="M46.2 14.5L46.6 3.6Q47 2 48.4 3L54 10.5Z
 <path d="M52 10.5v3.6M55.4 10v3.8" fill="none" stroke-width="1.8" style="stroke:${ST};opacity:var(--sto,1)"/>
 </g>
 <circle cx="54" cy="20" r="10.5" fill="none" stroke-width="3"/>`
++(yawn?'':`<g class="eye-w"><ellipse cx="57.6" cy="19.4" rx="2.5" ry="3" fill="#FFFFFF" stroke-width="1.6"/><circle cx="58.3" cy="19.6" r="1.4" fill="${O}" stroke="none"/></g>`)
 +(yawn
  ?`<path d="M54.8 18.2L58.6 19.6L55 21.2" fill="none" stroke-width="1.9" style="stroke:var(--eye,${O})"/>
 <g class="yawn"><ellipse cx="60.4" cy="25.6" rx="2.7" ry="3.1" fill="#7A2E45" stroke-width="1.4"/><ellipse cx="60.6" cy="27.4" rx="1.6" ry="1.1" fill="#F07A96" stroke="none"/></g>
 <path d="M62.8 20.6L65 21.2L63.2 23Z" fill="#F07A96" stroke-width="1" style="stroke:var(--eye,${O})"/>`
- :`<path d="M55.4 19.2Q57.6 21.6 59.8 19.2" fill="none" stroke-width="2" style="stroke:var(--eye,${O})"/>
+ :`<path class="eye-c" d="M55.4 19.2Q57.6 21.6 59.8 19.2" fill="none" stroke-width="2" style="stroke:var(--eye,${O})"/>
 <ellipse cx="57.4" cy="24.6" rx="2.2" ry="1.4" fill="#F28FA6" stroke="none" opacity=".55"/>
 <path d="M62.6 21.4L64.8 22L63 23.8Z" fill="#F07A96" stroke-width="1" style="stroke:var(--eye,${O})"/>`)}
 /* walking legs swing from the hip (CSS), each a quarter cycle apart for a slow four-beat walk */
@@ -255,8 +256,62 @@ function walk(k){const P=S.puzzle;if(!P||reduced())return;
     w.raf=requestAnimationFrame(frame)};
   frame(t0)}
 
+/* ---------- win finale: the card jiggles, then every cat gets the zoomies and dashes off the board ---------- */
+let fin=null;
+function stopFinale(){if(!fin)return;const f=fin;fin=null;f.timers.forEach(clearTimeout);cancelAnimationFrame(f.raf);
+  f.layer&&f.layer.remove();f.card&&f.card.classList.remove('card-jiggle');
+  board.querySelectorAll('.cell.zoomed').forEach(c=>c.classList.remove('zoomed'))}
+function finale(){stopFinale();if(reduced())return;
+  const ov=document.getElementById('overlay'),card=ov&&ov.querySelector('.card');if(!card||ov.hidden)return;
+  const f=fin={timers:[],raf:0,layer:null,card,seed:board.dataset.seed};
+  const ok=()=>fin===f&&!ov.hidden&&ov.contains(card)&&board.dataset.seed===f.seed;
+  const later=(fn,ms)=>f.timers.push(setTimeout(()=>{if(ok())fn()},ms));
+  /* polish.js's hop runs for about a second after the last cat curls up; jiggle after that */
+  later(()=>{card.classList.remove('card-jiggle');void card.offsetWidth;card.classList.add('card-jiggle');later(zoom,560)},1150);
+  function zoom(){const cats=[...board.querySelectorAll('.cell.cat')].filter(c=>c.querySelector('svg'));if(!cats.length)return;
+    /* sprites run in a layer inside the overlay, under the card (card is raised in css) and over the backdrop */
+    const L=f.layer=document.createElement('div');L.className='zoom-layer';L.setAttribute('aria-hidden','true');ov.insertBefore(L,ov.firstChild);
+    const or=ov.getBoundingClientRect(),n=S.puzzle.n,cw=board.clientWidth/n,W=cw*1.3,mid=or.width/2;
+    /* lanes clear of the card: a runner whose row is behind the card veers up or down to the nearer one */
+    const crd=card.getBoundingClientRect(),cTop=crd.top-or.top,cBot=crd.bottom-or.top,laneUp=Math.max(W*.62,cTop-cw*.12),laneDn=Math.min(or.height-cw*.08,cBot+W*.72);
+    const laneFor=y=>y<cTop-cw*.1||y-W*.6>cBot?y:(y-cTop<cBot-y&&laneUp<cTop?laneUp:laneDn);
+    window.NapMapSound&&window.NapMapSound.play('zoomies');
+    const stag=Math.min(90,520/Math.max(1,cats.length-1)),runners=[];
+    cats.forEach((cell,i)=>{const r=cell.getBoundingClientRect(),x0=r.left-or.left+r.width/2,y0=r.top-or.top+r.height*.88;
+      const curled=cell.querySelector('svg'),coat=(curled.getAttribute('class')||'').split(/\s+/).filter(c=>c.startsWith('coat-')).join(' ');
+      const dir=x0<mid?-1:1,x1=dir<0?-W*.8:or.width+W*.8,el=document.createElement('div');el.className='cat-walker zoomer';
+      el.style.width=W+'px';el.style.height=W*52/72+'px';el.style.opacity=0;
+      el.innerHTML=`<div class="cw-face">${walkerSVG(coat)}</div>`;el.firstChild.style.transform=`scaleX(${dir})`;
+      const svg=el.querySelector('svg');svg.classList.add('zoomy');L.appendChild(el);
+      /* a zig on one in three, a hop over the neighbours on another */
+      const style=i%3===1?'zig':i%3===2?'hop':'dash';
+      runners.push({el,svg,cell,x0,y0,x1,dir,style,lane:laneFor(y0),t0:i*stag,woke:false,ran:false,puff:0})});
+    const tWake=230,tRun=620,start=performance.now(),end=stag*(cats.length-1)+tWake+tRun+60;
+    const dust=(x,y,dir)=>{const d=document.createElement('i');d.className='zoom-dust';d.style.left=x+'px';d.style.top=y+'px';
+      d.style.setProperty('--dx',(-dir*cw*.35)+'px');L.appendChild(d);setTimeout(()=>d.remove(),420)};
+    const frame=now=>{if(!ok()){stopFinale();return}const t=now-start;
+      runners.forEach(R=>{const u=t-R.t0;if(u<0)return;let x=R.x0,y=R.y0,sx=1,sy=1,rot=0;
+        if(!R.woke){R.woke=true;R.cell.classList.add('zoomed');R.el.style.opacity=1}
+        if(u<tWake){/* wake: pops up from the curl, ears up, eyes wide, a little startled hop */
+          const p=u/tWake;sy=.7+.3*smooth(Math.min(1,p*1.6));sx=1.15-.15*smooth(Math.min(1,p*1.6));y-=Math.sin(p*Math.PI)*cw*.22}
+        else if(u<tWake+tRun){if(!R.ran){R.ran=true;R.svg.classList.add('running');dust(R.x0,R.y0,R.dir)}
+          const p=(u-tWake)/tRun,e=p*p*(1.4-.4*p);x=R.x0+(R.x1-R.x0)*e;sx=1.18;sy=.88;rot=R.dir*-4;
+          const v=smooth(Math.min(1,p/.35));y=R.y0+(R.lane-R.y0)*v;if(R.lane!==R.y0&&p<.35)rot+=(R.lane<R.y0?-1:1)*R.dir*14*Math.sin(p/.35*Math.PI);
+          if(R.style==='zig')y+=Math.sin(p*Math.PI*2)*cw*.32;
+          if(R.style==='hop'&&p>.15&&p<.55)y-=Math.sin((p-.15)/.4*Math.PI)*cw*.55;
+          if(now-R.puff>110){R.puff=now;dust(x-R.dir*W*.35,y,R.dir)}}
+        else{R.el.style.opacity=0;return}
+        R.el.style.transform=`translate(${x}px,${y}px) translate(-50%,-86.5%) rotate(${rot}deg) scale(${sx},${sy})`});
+      if(t<end)f.raf=requestAnimationFrame(frame);else{L.innerHTML='';}};
+    f.raf=requestAnimationFrame(frame)}}
+S.on('win',()=>{if(reduced())return;const go=()=>finale();whenIdleInner(go)});
+S.on('newPuzzle',stopFinale);
+document.getElementById('overlay')?.addEventListener('click',e=>{if(e.target.closest('[data-act]'))stopFinale()},true);
+document.addEventListener('click',e=>{if(e.target.closest('.chip[data-mode],#new,#restart,#archive-btn'))stopFinale()},true);
+
 S.on('cat',d=>walk(d.k));
 S.on('newPuzzle',()=>{idle=[];[...walks].forEach(w=>finish(w))});
 /* polish.js waits on this so the win hop starts once the last cat has curled up */
-window.NapMapCats={walkerSVG,planFor,get busy(){return walks.size>0},whenIdle(f){walks.size?idle.push(f):f()}};
+function whenIdleInner(f){walks.size?idle.push(f):f()}
+window.NapMapCats={walkerSVG,planFor,stopFinale,get busy(){return walks.size>0},whenIdle:whenIdleInner};
 })();

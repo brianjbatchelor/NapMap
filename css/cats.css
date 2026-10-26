@@ -65,3 +65,30 @@
   filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}}
 :root[data-theme="dark"] .cat-walker{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}
 @media (prefers-reduced-motion:reduce){.cat-walker{display:none}.cell.cat-arriving svg{opacity:1}}
+
+/* ---------- win finale (js/cats.js): card jiggle, then zoomies ---------- */
+.overlay .card{position:relative;z-index:1}
+.card.card-jiggle{animation:card-jiggle .58s cubic-bezier(.3,.6,.4,1)}
+@keyframes card-jiggle{
+  0%{transform:none}
+  12%{transform:translateY(-6px) rotate(-3.2deg) scale(1.02)}
+  28%{transform:translateY(1px) rotate(2.6deg)}
+  44%{transform:translateY(-2px) rotate(-1.8deg)}
+  60%{transform:rotate(1.1deg)}
+  76%{transform:rotate(-.5deg)}
+  100%{transform:none}}
+.zoom-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px;z-index:0}
+.zoom-layer .cat-walker{z-index:auto}
+.cell.zoomed svg:not(.x){opacity:0;transition:opacity .12s}
+/* awake: ears perk up, eyes wide */
+.cw .eye-w{display:none}
+.cw.zoomy .eye-w{display:inline}.cw.zoomy .eye-c{display:none}
+.cw.zoomy .tail{animation:cw-tail .18s ease-in-out infinite alternate}
+.cw.running .leg{animation:cw-run .16s linear infinite}
+.cw.running .leg.lh,.cw.running .leg.rf{animation-delay:-.08s}
+.cw.running .sway{animation:cw-sway .08s ease-in-out infinite alternate}
+@keyframes cw-run{0%,100%{transform:rotate(42deg)}50%{transform:rotate(-42deg)}}
+.zoom-dust{position:absolute;width:9px;height:9px;margin:-7px 0 0 -4.5px;border-radius:50%;pointer-events:none;box-shadow:0 0 0 1.5px rgba(43,47,69,.25);
+  background:color-mix(in srgb,var(--surface) 80%,var(--muted));opacity:.85;animation:zoom-dust .42s ease-out forwards}
+@keyframes zoom-dust{to{transform:translate(var(--dx),-6px) scale(2.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.card.card-jiggle{animation:none}.zoom-layer{display:none}.cell.zoomed svg:not(.x){opacity:1}}
