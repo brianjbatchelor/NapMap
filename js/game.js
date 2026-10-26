@@ -53,6 +53,16 @@ function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=n
   $('overlay').hidden=true;render();renderHearts();tick()}
 
 /* ---------- render ---------- */
+/* crossing out by hand: white dots fade in near the corners, then snap together into the X (css/xanim.css).
+   Only squares the player taps or drags over animate; auto-crosses and hints just appear. */
+const animX=new Set();
+function xDots(){const pts=[],T=[[34,34],[42,42],[50,50],[58,58],[66,66],[66,34],[58,42],[42,58],[34,66]];
+  const j=()=>(Math.random()-.5)*8;
+  T.forEach(([x,y])=>{let dx=x-50,dy=y-50;if(!dx&&!dy){const c=Math.random()*4|0;dx=c&1?16:-16;dy=c&2?16:-16}
+    const L=Math.hypot(dx,dy),far=30+Math.random()*8;/* most start out near a corner */
+    const sx=Math.max(8,Math.min(92,50+dx/L*far*1.25+j())),sy=Math.max(8,Math.min(92,50+dy/L*far*1.25+j()));
+    pts.push(`<span class="xd" style="--sx:${sx.toFixed(1)};--sy:${sy.toFixed(1)};--tx:${x};--ty:${y};--d:${(Math.random()*90|0)}ms"></span>`)});
+  return pts.join('')}
 /* a bed glows once its cat has curled up in it (a walking cat's cell carries .cat-arriving until it lands) */
 let claimedSet=new Set();
 function updateClaims(){if(!P)return;const now=new Set(),b=$('board');
@@ -84,7 +94,7 @@ function render(){const n=P.n,b=$('board');renderAxes(n);b.style.gridTemplateCol
       row.appendChild(e);cellEls.push(e)}}
   cellEls.forEach((e,k)=>{const s=cells[k],cls='cell'+(s===2?' cat':'')+(s===3?' wrong':'');
     if(e.dataset.s!=s){e.dataset.s=s;e.className=cls;
-      e.innerHTML=s===2?`<svg class="${catCoat(k)}" viewBox="0 0 64 64"><use href="#cat"/></svg>`:(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
+      e.innerHTML=s===2?`<svg class="${catCoat(k)}" viewBox="0 0 64 64"><use href="#cat"/></svg>`:s===1&&animX.has(k)?xDots()+'<svg class="x x-anim"><use href="#x"/></svg>':(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
     const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${BEDS[P.colors[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
   /* --- styles: the style leads the label, e.g. "Cozy · 8×8 · ★★★☆"; daily boards are always Cozy --- */
   /* next frame: a just-placed cat's walk has started by then (cats.js marks its cell .cat-arriving) */
@@ -205,15 +215,15 @@ const cellAt=(x,y)=>{const el=document.elementFromPoint(x,y)?.closest('.cell');r
 board.addEventListener('pointerdown',e=>{if(done||e.button!==0)return;const k=cellAt(e.clientX,e.clientY);if(k==null)return;e.preventDefault();
   board.setPointerCapture(e.pointerId);drag={start:k,last:k,moved:false,paint:cells[k]===0?1:0,snap:false}});
 board.addEventListener('pointermove',e=>{if(!drag)return;const k=cellAt(e.clientX,e.clientY);if(k==null||k===drag.last)return;
-  if(!drag.moved){drag.moved=true;snapshot();drag.snap=true;startClock();setMark(drag.start,drag.paint)}
-  drag.last=k;setMark(k,drag.paint);render()});
+  if(!drag.moved){drag.moved=true;snapshot();drag.snap=true;startClock();if(setMark(drag.start,drag.paint)&&drag.paint===1)animX.add(drag.start)}
+  drag.last=k;if(setMark(k,drag.paint)&&drag.paint===1)animX.add(k);render();animX.clear()});
 board.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;if(d.moved){render();return}tap(d.start)});
 board.addEventListener('pointercancel',()=>{drag=null});
 board.addEventListener('contextmenu',e=>e.preventDefault()); // long-press and right-click: no menu over the board
 function tap(k){const now=Date.now();
   if(lastTap.k===k&&now-lastTap.t<330){ // double tap: undo the single-tap mark, then place a cat
     if(lastTap.prev!=null){cells[k]=lastTap.prev;undo.pop()}lastTap={k:-1,t:0,prev:null};placeCat(k);return}
-  const prev=cells[k];if(prev===0||prev===1){snapshot();startClock();cells[k]=prev===0?1:0;render();lastTap={k,t:now,prev}}
+  const prev=cells[k];if(prev===0||prev===1){snapshot();startClock();cells[k]=prev===0?1:0;if(prev===0)animX.add(k);render();animX.clear();lastTap={k,t:now,prev}}
   else lastTap={k,t:now,prev:null}}
 board.addEventListener('keydown',e=>{const el=e.target.closest('.cell');if(!el||e.ctrlKey||e.metaKey||e.altKey||done&&!/Arrow/.test(e.key))return;const k=+el.dataset.k,n=P.n;let q=null;
   if(e.key==='ArrowRight')q=k%n<n-1?k+1:k;else if(e.key==='ArrowLeft')q=k%n?k-1:k;else if(e.key==='ArrowDown')q=k+n<n*n?k+n:k;else if(e.key==='ArrowUp')q=k-n>=0?k-n:k;

@@ -1,0 +1,12 @@
+/* Crossing out a square by hand: little white dots fade in, mostly near the corners, then snap together into the X.
+   Slow fade (~0.4s), sudden snap (~0.1s), then the X takes over and the dots vanish. */
+.xd{position:absolute;z-index:2;width:9%;aspect-ratio:1;border-radius:50%;background:#fff;pointer-events:none;
+  box-shadow:0 0 0 1px rgba(31,42,68,.22),0 0 3px rgba(31,42,68,.25);
+  left:calc(var(--sx)*1%);top:calc(var(--sy)*1%);transform:translate(-50%,-50%);opacity:0;
+  animation:xd-fade .42s ease-in var(--d) forwards,xd-snap .1s cubic-bezier(.75,0,1,.5) calc(.44s + var(--d)) forwards,xd-out .1s linear calc(.58s + var(--d)) forwards}
+@keyframes xd-fade{to{opacity:.95}}
+@keyframes xd-snap{to{left:calc(var(--tx)*1%);top:calc(var(--ty)*1%);width:7%}}
+@keyframes xd-out{to{opacity:0}}
+.cell .x.x-anim{animation:x-in .14s ease-out .54s both}
+@keyframes x-in{from{opacity:0;transform:scale(.55)}60%{transform:scale(1.12)}}
+@media (prefers-reduced-motion:reduce){.xd{display:none}.cell .x.x-anim{animation:none}}

@@ -122,9 +122,9 @@ function explain(P,s,names,W=PLAIN){const N=namer(P,names),U=s.units,y=W.why,o=W
     if(s.dir==='area')return `All the open spots in ${y(N.unit(a))} are in ${o(N.unit(b))}, so nothing else in ${o(N.unit(b))} can have a cat.`;
     return `All the open spots in ${y(N.unit(a))} are in ${o(N.unit(b))}, so ${N.unit(a)}'s cat sleeps there and the rest of ${o(N.unit(b))} can't have a cat.`}
   case 'squeeze':{const u=y(N.unit(U[0]));
-    if(s.cross.length===1)return `A cat at ${o(N.spot(s.cross[0]))} would touch or line up with every open spot in ${u}, leaving it nowhere to nap, so no cat can go there.`;
+    if(s.cross.length===1)return `A cat at ${o(N.spot(s.cross[0]))} would share a bed, row or column with, or touch, every open spot in ${u}, leaving it nowhere to nap, so no cat can go there.`;
     const cnt=s.cross.length===2?'either of the two':'any of the '+(s.cross.length<=5?WORDS[s.cross.length]:s.cross.length);
-    return `A cat on ${o(cnt+' gold spots')} would touch or line up with every open spot in ${u}, leaving it nowhere to nap, so they're crossed out.`}
+    return `A cat on ${o(cnt+' gold spots')} would share a bed, row or column with, or touch, every open spot in ${u}, leaving it nowhere to nap, so they're crossed out.`}
   case 'group':{const areas=U.filter(u=>u.type==='area'),lines=U.filter(u=>u.type!=='area'),k=areas.length,kw=WORDS[k]||k;
     let lw=(s.dir==='row'?'rows ':'columns ')+join(lines.map(u=>String(u.index+1)));
     let an=join(areas.map(u=>N.unit(u)));
