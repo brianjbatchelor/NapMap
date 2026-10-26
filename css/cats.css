@@ -32,22 +32,36 @@
 .arc-cat{overflow:visible}
 
 /* ---------- walk-in (js/cats.js) ---------- */
-/* the curled cat waits hidden while its walker trots over; dropping the class replays the settle-in squash */
+/* the curled cat waits hidden while its walker strolls over; dropping the class replays the settle-in squash */
 .cell.cat-arriving svg{opacity:0;animation:none}
-.cat-walk-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px;z-index:2}
-.cat-walker{position:absolute;left:0;top:0;will-change:transform,opacity;
+/* the walker lives inside #board: z-index 1 just before the first .furn while it is behind the furniture
+   (above the room blocks and cell fabric, under the art), then z-index 3 above cats, marks and art */
+.cat-walker{position:absolute;left:0;top:0;z-index:3;pointer-events:none;will-change:transform,opacity;
   filter:drop-shadow(0 0 1.2px rgba(255,255,255,.95)) drop-shadow(0 0 2.4px rgba(255,255,255,.6)) drop-shadow(0 1px 0 rgba(43,47,69,.18))}
+.cat-walker.behind{z-index:1}
+/* the furniture hides the cat properly while it is behind (the art is normally a little see-through) */
+.furn.cat-behind svg{opacity:1!important}
 .cw-face,.cw{display:block;width:100%;height:100%}
 .cw{overflow:visible}
-.cw .leg{transform-box:fill-box;transform-origin:50% 10%}
-.cw .leg.far{filter:brightness(.82)}
-.cw.walking .leg{animation:cw-leg .22s linear infinite alternate}
-/* trot: diagonal pairs (far front + near hind) swing together */
-.cw.walking .leg:nth-of-type(2),.cw.walking .leg:nth-of-type(4){animation-direction:alternate-reverse}
-.cw.walking .bodyg{animation:cw-bob .11s ease-in-out infinite alternate}
-@keyframes cw-leg{from{transform:rotate(26deg)}to{transform:rotate(-26deg)}}
-@keyframes cw-bob{from{transform:translateY(0)}to{transform:translateY(-1.6px)}}
+.cw .pw,.cw .ps{transition:opacity .12s linear}
+.cw .leg{transform-box:fill-box;transform-origin:50% 12%}
+.cw .leg.f{filter:brightness(.84)}
+.cw .tail{transform-box:view-box;transform-origin:16px 27px}
+.cw .sway{transform-box:view-box;transform-origin:34px 40px}
+.cw .nod{transform-box:view-box;transform-origin:50px 27px}
+.cw .yawn{transform-box:fill-box;transform-origin:50% 20%;transform:scale(var(--yawn,0))}
+/* a slow four-beat walk: each leg a quarter cycle apart (hind, fore, hind, fore), gentle sway, lazy tail swish */
+.cw.walking .leg{animation:cw-leg .96s ease-in-out infinite}
+.cw.walking .leg.lh{animation-delay:0s}.cw.walking .leg.lf{animation-delay:-.24s}
+.cw.walking .leg.rh{animation-delay:-.48s}.cw.walking .leg.rf{animation-delay:-.72s}
+.cw.walking .sway{animation:cw-sway .48s ease-in-out infinite alternate}
+.cw.walking .nod{animation:cw-nod .96s ease-in-out infinite}
+.cw .tail{animation:cw-tail 1.6s ease-in-out infinite alternate}
+@keyframes cw-leg{0%,100%{transform:rotate(20deg)}50%{transform:rotate(-20deg)}}
+@keyframes cw-sway{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-1.2px) rotate(1deg)}}
+@keyframes cw-nod{0%,100%{transform:rotate(0)}50%{transform:rotate(3deg)}}
+@keyframes cw-tail{from{transform:rotate(-7deg)}to{transform:rotate(9deg)}}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cat-walker{
   filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}}
 :root[data-theme="dark"] .cat-walker{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.8)) drop-shadow(0 0 2.6px rgba(238,241,248,.45))}
-@media (prefers-reduced-motion:reduce){.cat-walk-layer{display:none}.cell.cat-arriving svg{opacity:1}}
+@media (prefers-reduced-motion:reduce){.cat-walker{display:none}.cell.cat-arriving svg{opacity:1}}
