@@ -36,7 +36,7 @@
 .cell.cat-arriving svg{opacity:0;animation:none}
 /* the walker lives inside #board: z-index 1 just before the first .furn while it is behind the furniture
    (above the room blocks and cell fabric, under the art), then z-index 3 above cats, marks and art */
-.cat-walker{position:absolute;left:0;top:0;z-index:3;pointer-events:none;will-change:transform,opacity;
+.cat-walker{position:absolute;left:0;top:0;z-index:3;transform-origin:50% 86.5%;pointer-events:none;will-change:transform,opacity;
   filter:drop-shadow(0 0 1.2px rgba(255,255,255,.95)) drop-shadow(0 0 2.4px rgba(255,255,255,.6)) drop-shadow(0 1px 0 rgba(43,47,69,.18))}
 .cat-walker.behind{z-index:1}
 /* the furniture hides the cat properly while it is behind (the art is normally a little see-through) */
