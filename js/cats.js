@@ -55,7 +55,7 @@ ${leg(24,0)}${leg(49,0)}
 
 const ease=t=>t<.5?2*t*t:1-2*(1-t)*(1-t);
 function finish(w,land){if(w.done)return;w.done=true;cancelAnimationFrame(w.raf);w.el.remove();walks.delete(w);
-  if(w.cell.isConnected)w.cell.classList.remove('cat-arriving');
+  if(w.cell.isConnected){w.cell.classList.remove('cat-arriving');S.emit&&S.emit('catLanded',{k:+w.cell.dataset.k})}
   if(!walks.size){const q=idle;idle=[];if(land)q.forEach(f=>{try{f()}catch(e){console.error(e)}})}}
 /* still the same cat in the same board? (new puzzle, restart or undo replace or reset the cell) */
 const alive=w=>w.cell.isConnected&&w.cell.dataset.s==='2'&&board.dataset.seed===w.seed;
@@ -87,7 +87,7 @@ function walk(k){const P=S.puzzle;if(!P||reduced())return;
       x=tx+Math.sin(a)*cw*.1*dir;y=ty-Math.sin(a/2)*cw*.06;flip=dir*Math.cos(a);sc=1-.12*p;
       const m=Math.abs(flip);if(m<.42)flip=(flip<0?-1:1)*(.42+.1*(.42-m));sc*=1-.08*(1-m)}
     else{const p=Math.min(1,(t-tWalk-tHop-tTurn)/tFade);x=tx;y=ty+cw*.04*p;sc=.88-.2*p;op=1-p;
-      if(!landed){landed=true;cell.classList.remove('cat-arriving')}}
+      if(!landed){landed=true;cell.classList.remove('cat-arriving');S.emit&&S.emit('catLanded',{k:+cell.dataset.k})}}
     el.style.transform=`translate(${x}px,${y}px) translate(-50%,-62%) rotate(${rot}deg) scale(${sc})`;el.style.opacity=op;
     face.style.transform=`scaleX(${flip})`;
     if(t>=T){finish(w,true);return}

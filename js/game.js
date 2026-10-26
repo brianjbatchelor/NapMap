@@ -53,6 +53,15 @@ function reset(){cells=Array(P.n*P.n).fill(0);lives=3;undo=[];elapsed=0;startT=n
   $('overlay').hidden=true;render();renderHearts();tick()}
 
 /* ---------- render ---------- */
+/* a bed glows once its cat has curled up in it (a walking cat's cell carries .cat-arriving until it lands) */
+let claimedSet=new Set();
+function updateClaims(){if(!P)return;const now=new Set(),b=$('board');
+  cellEls.forEach((e,k)=>{if(cells[k]===2&&!e.classList.contains('cat-arriving'))now.add(P.reg[k])});
+  cellEls.forEach((e,k)=>e.classList.toggle('claimed',now.has(P.reg[k])));
+  b.querySelectorAll('[data-g]').forEach(el=>{const g=+el.dataset.g,on=now.has(g);el.classList.toggle('claimed',on);
+    if(on&&!claimedSet.has(g)){el.classList.remove('just-claimed');void el.getBoundingClientRect();el.classList.add('just-claimed')}});
+  claimedSet=now}
+on('catLanded',()=>updateClaims());on('newPuzzle',()=>{claimedSet=new Set();updateClaims()});
 /* axis numbers: rows down the left, columns across the top, matching the numbers hints use */
 function renderAxes(n){const c=$('axis-cols'),r=$('axis-rows');if(!c||c.dataset.n==n)return;c.dataset.n=r.dataset.n=n;
   const nums=Array.from({length:n},(_,i)=>`<span>${i+1}</span>`).join('');c.innerHTML=r.innerHTML=nums;
@@ -78,6 +87,8 @@ function render(){const n=P.n,b=$('board');renderAxes(n);b.style.gridTemplateCol
       e.innerHTML=s===2?`<svg class="${catCoat(k)}" viewBox="0 0 64 64"><use href="#cat"/></svg>`:(s===1||s===3)?'<svg class="x"><use href="#x"/></svg>':'';}
     const r=k/n|0,c=k%n;e.setAttribute('aria-label',`Row ${r+1}, column ${c+1}, ${BEDS[P.colors[P.reg[k]]]}, ${['empty','crossed out','cat','wrong guess'][s]}`)});
   /* --- styles: the style leads the label, e.g. "Cozy · 8×8 · ★★★☆"; daily boards are always Cozy --- */
+  /* next frame: a just-placed cat's walk has started by then (cats.js marks its cell .cat-arriving) */
+  requestAnimationFrame(updateClaims);
   const lab=mode==='daily'?(P.dateKey===today()?'Daily · ':'Past daily · ')+dateOf(P.dateKey).toLocaleDateString(undefined,{month:'short',day:'numeric'}):`${STYLE_NAMES[P.style]||''} · ${P.n}×${P.n}`;
   $('label').textContent=lab;
   $('label').title=mode==='daily'?'Daily boards are always Cozy, so everyone plays the same one':`${STYLE_NAMES[P.style]} board · puzzle #${(P.seed%100000).toString().padStart(5,'0')}`;

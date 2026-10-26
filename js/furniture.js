@@ -125,7 +125,7 @@ function drawRoom(P,board){const n=P.n,W=n*U,id='rm'+(++uid);
     /* padded edges: thin bands along the block's own edges (light on top and left, shade on the bottom and right) */
     const band=(dx,dy)=>`<mask id="${c}${dx}${dy}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${W}"><path d="${d}" fill="#fff"/><path d="${d}" transform="translate(${dx} ${dy})" fill="#000"/></mask>`;
     defs+=`<clipPath id="${c}"><path d="${d}"/></clipPath>`+band(0,6)+band(0,-8)+band(5,0)+band(-5,0);
-    body+=`<g class="rm-blk" data-bed="${bed}"><path class="rm-shadow" d="${d}" transform="translate(0 6)"/>`
+    body+=`<g class="rm-blk" data-bed="${bed}" data-g="${g}"><path class="rm-shadow" d="${d}" transform="translate(0 6)"/>`
       +`<path class="rm-fill" d="${d}"/>`
       +`<g clip-path="url(#${c})"><path class="rm-seam" d="${grid}"/></g>`
       +`<path class="rm-hi" d="${d}" mask="url(#${c}06)"/><path class="rm-lo" d="${d}" mask="url(#${c}0-8)"/>`
@@ -141,7 +141,7 @@ function draw(){const P=S.puzzle,board=document.getElementById('board');if(!P||!
   const room=isRoom(P);if(room)drawRoom(P,board);
   /* --- end styles --- */
   for(let g=0;g<n;g++){const b=room?innerRect(P,g):bestRect(P,g),bed=P.colors[g];if(!b)continue;const d=document.createElement('div');
-    d.className='furn';d.dataset.bed=bed;
+    d.className='furn';d.dataset.bed=bed;d.dataset.g=g;
     if(room){const W=n*U;/* room: inside the block's inset edge; the drawing stands on the bottom (its floor) */
       d.style.left=(b.c0*U+PAD)/W*100+'%';d.style.top=(b.r0*U+PAD)/W*100+'%';
       d.style.width=(b.w*U-2*PAD)/W*100+'%';d.style.height=(b.h*U-2*PAD)/W*100+'%'}
