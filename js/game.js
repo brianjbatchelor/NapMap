@@ -167,7 +167,16 @@ function clearHintMarks(){clearTimeout(hintTimer);cellEls.forEach(e=>e.classList
 function setHintText(el,rich,plain){el.textContent='';if(!rich){el.textContent=plain;return}
   rich.split(/(\u27e6[^\u27e7]*\u27e7|\u27ea[^\u27eb]*\u27eb)/).forEach(part=>{if(!part)return;
     const m=part[0];if(m==='\u27e6'||m==='\u27ea'){const s=document.createElement('span');s.className=m==='\u27e6'?'why':'so';s.textContent=part.slice(1,-1);el.appendChild(s)}
-    else el.appendChild(document.createTextNode(part))})}
+    else el.appendChild(document.createTextNode(part))});
+  colorBedNames(el)}
+/* a bed's name in a hint wears that bed's color, so it's easy to match to the board */
+function colorBedNames(el){const map=new Map();P.colors.forEach(c=>map.set(BEDS[c],c));
+  const re=new RegExp('('+[...map.keys()].sort((a,b)=>b.length-a.length).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')');
+  const walk=node=>{[...node.childNodes].forEach(ch=>{if(ch.nodeType===1){walk(ch);return}if(ch.nodeType!==3||!re.test(ch.data))return;
+    const frag=document.createDocumentFragment();ch.data.split(re).forEach((t,i)=>{if(!t)return;
+      if(i%2){const s=document.createElement('span');s.className='bed-name';s.style.setProperty('--bedc',`var(--r${map.get(t)})`);s.textContent=t;frag.appendChild(s)}
+      else frag.appendChild(document.createTextNode(t))});ch.replaceWith(frag)})};
+  walk(el)}
 function hideHint(){const b=$('hint-bubble');if(b)b.hidden=true;clearHintMarks()}
 function hint(){if(done)return;startClock();
   const step=DIFF.nextStep(P,cells,{names:P.colors.map(c=>BEDS[c])});

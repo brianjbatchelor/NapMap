@@ -43,3 +43,10 @@
 .axis span{display:grid;place-items:center;border-radius:6px;min-width:18px;min-height:18px;transition:background .15s,color .15s}
 .axis span.why{background:var(--why);color:#fff}
 .axis span.so{background:var(--sun);color:#1F2A44}
+
+/* bed names in a hint wear their bed's color; the blue or gold underline still says why or so */
+.hint-bubble .bed-name{background:var(--bedc);color:var(--ink);border-radius:5px;padding:0 3px;box-decoration-break:clone;-webkit-box-decoration-break:clone;
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ink) 25%,transparent)}
+.hint-bubble .why .bed-name{box-shadow:inset 0 -3px 0 var(--why),inset 0 0 0 1.5px color-mix(in srgb,var(--ink) 25%,transparent)}
+.hint-bubble .so .bed-name{box-shadow:inset 0 -3px 0 var(--sun),inset 0 0 0 1.5px color-mix(in srgb,var(--ink) 25%,transparent)}
+.hint-bubble .why:has(.bed-name),.hint-bubble .so:has(.bed-name){background:none;box-shadow:none;padding:0}
