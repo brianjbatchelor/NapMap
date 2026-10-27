@@ -51,11 +51,11 @@
 .cw .nod{transform-box:view-box;transform-origin:50px 27px}
 .cw .yawn{transform-box:fill-box;transform-origin:50% 20%;transform:scale(var(--yawn,0))}
 /* a slow four-beat walk: each leg a quarter cycle apart (hind, fore, hind, fore), gentle sway, lazy tail swish */
-.cw.walking .leg{animation:cw-leg .96s ease-in-out infinite}
-.cw.walking .leg.lh{animation-delay:0s}.cw.walking .leg.lf{animation-delay:-.24s}
-.cw.walking .leg.rh{animation-delay:-.48s}.cw.walking .leg.rf{animation-delay:-.72s}
-.cw.walking .sway{animation:cw-sway .48s ease-in-out infinite alternate}
-.cw.walking .nod{animation:cw-nod .96s ease-in-out infinite}
+.cw.walking .leg{animation:cw-leg calc(.96s / var(--sp,1)) ease-in-out infinite}
+.cw.walking .leg.lh{animation-delay:0s}.cw.walking .leg.lf{animation-delay:calc(-.24s / var(--sp,1))}
+.cw.walking .leg.rh{animation-delay:calc(-.48s / var(--sp,1))}.cw.walking .leg.rf{animation-delay:calc(-.72s / var(--sp,1))}
+.cw.walking .sway{animation:cw-sway calc(.48s / var(--sp,1)) ease-in-out infinite alternate}
+.cw.walking .nod{animation:cw-nod calc(.96s / var(--sp,1)) ease-in-out infinite}
 .cw .tail{animation:cw-tail 1.6s ease-in-out infinite alternate}
 @keyframes cw-leg{0%,100%{transform:rotate(20deg)}50%{transform:rotate(-20deg)}}
 @keyframes cw-sway{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-1.2px) rotate(1deg)}}

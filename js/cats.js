@@ -212,9 +212,11 @@ function walk(k){const P=S.puzzle;if(!P||reduced())return;
   let dir=firstWalk?Math.sign(firstWalk.x1-firstWalk.x0)||side:side,flip=dir,lastT=0,pi=0,walking=null;
   let behind=edge!=null;if(!behind)el.classList.remove('behind');
   const setWalking=on=>{if(on!==walking){walking=on;svg.classList.toggle('walking',on)}};
+  /* the cat that completes the board hurries: everything about its walk runs at triple speed */
+  const sp=board.querySelectorAll('.cell.cat').length>=n?3:1;if(sp>1)svg.style.setProperty('--sp',sp);
   const t0=performance.now();
   const frame=now=>{if(w.done)return;if(!alive(w)){finish(w,w.cell.isConnected&&board.dataset.seed===w.seed);return}
-    const t=now-t0,dt=Math.min(64,t-lastT);lastT=t;let x,y,sx=1,sy=1,op=1,rot=0,stretch=0;
+    const t=(now-t0)*sp,dt=Math.min(64,t-lastT);lastT=t;let x,y,sx=1,sy=1,op=1,rot=0,stretch=0;
     if(t<tMove){while(pi<ph.length-1&&t>=ph[pi].t0+ph[pi].dur)pi++;const p=ph[pi],u=Math.min(1,(t-p.t0)/p.dur);
       if(p.type==='walk'){setWalking(true);
         /* ease in and out of each stretch of walking (a slow start out of hiding, a gentle stop before a jump) */
@@ -276,7 +278,9 @@ function finale(){stopFinale();if(reduced())return;
     const or=ov.getBoundingClientRect(),n=S.puzzle.n,cw=board.clientWidth/n,W=cw*1.3,mid=or.width/2;
     /* the card's words turn into zoomies too (the button keeps its label); a later leaderboard line must not undo it */
     card.classList.add('card-zoomies');
-    card.querySelectorAll(':scope > :not(.row)').forEach(e=>{e.textContent=e.tagName==='H2'?'Zoomies!':'Zoomies zoomies zoomies'});
+    const words=[...card.querySelectorAll(':scope > :not(.row)')].map(e=>[e,e.innerHTML]);
+    words.forEach(([e])=>{e.textContent=e.tagName==='H2'?'Zoomies!':'Zoomies zoomies zoomies'});
+    const restore=()=>{if(!card.isConnected)return;card.classList.remove('card-zoomies');words.forEach(([e,h])=>{if(e.isConnected)e.innerHTML=h})};
     window.NapMapSound&&window.NapMapSound.play('zoomies');
     const stag=Math.min(90,520/Math.max(1,cats.length-1)),runners=[];
     cats.forEach((cell,i)=>{const r=cell.getBoundingClientRect(),x0=r.left-or.left+r.width/2,y0=r.top-or.top+r.height*.88;
@@ -296,7 +300,7 @@ function finale(){stopFinale();if(reduced())return;
         s=R.y0<ymid?1:-1,yb=clampY(R.y0+s*cw*(1.5+(i%3)*.6)),xe=Math.max(wl,Math.min(wr,xb+d1*cw*3)),ye=yb<ymid?-W:or.height+W;
       const run=(x0,y0,x1,y1,min,fast=1)=>({type:'run',x0,y0,x1,y1,dir:Math.sign(x1-x0)||d1,dur:Math.max(min,Math.hypot(x1-x0,y1-y0)/v/fast)});
       const segs=[{type:'wake',x:R.x0,y:R.y0,dur:tWake},run(R.x0,R.y0,xa,ya,260),{type:'bonk',x:xa,y:ya,dir:d1,next:-d1,dur:tBonk},
-        run(xa,ya,xb,yb,380),{type:'bonk',x:xb,y:yb,dir:-d1,next:d1,dur:tBonk},run(xb,yb,xe,ye,127,3)];
+        run(xa,ya,xb,yb,380),{type:'bonk',x:xb,y:yb,dir:-d1,next:d1,dur:tBonk},run(xb,yb,xe,ye,380)];
       let acc=R.t0;segs.forEach((g,j)=>{g.t0=acc;acc+=g.dur;g.j=j});R.segs=segs;R.total=acc;R.seg=0});
     const end=Math.max(...runners.map(R=>R.total))+60,start=performance.now();
     const dust=(x,y,dir)=>{const d=document.createElement('i');d.className='zoom-dust';d.style.left=x+'px';d.style.top=y+'px';
@@ -321,7 +325,7 @@ function finale(){stopFinale();if(reduced())return;
           sx=1-.26*Math.sin(hit*Math.PI/2)*(1-back);sy=1+.14*Math.sin(hit*Math.PI/2)*(1-back);rot=-g.dir*Math.sin(p*Math.PI*3)*7*(1-p);fd=p<.55?g.dir:g.next}
         R.el.firstChild.style.transform=`scaleX(${fd})`;
         R.el.style.transform=`translate(${x}px,${y}px) translate(-50%,-86.5%) rotate(${rot}deg) scale(${sx},${sy})`});
-      if(t<end)f.raf=requestAnimationFrame(frame);else{L.innerHTML='';}};
+      if(t<end)f.raf=requestAnimationFrame(frame);else{L.innerHTML='';restore()}};
     f.raf=requestAnimationFrame(frame)}}
 S.on('win',()=>{if(reduced())return;const go=()=>finale();whenIdleInner(go)});
 S.on('newPuzzle',stopFinale);
