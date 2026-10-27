@@ -269,40 +269,56 @@ function finale(){stopFinale();if(reduced())return;
   const ok=()=>fin===f&&!ov.hidden&&ov.contains(card)&&board.dataset.seed===f.seed;
   const later=(fn,ms)=>f.timers.push(setTimeout(()=>{if(ok())fn()},ms));
   /* polish.js's hop runs for about a second after the last cat curls up; jiggle after that */
-  later(()=>{card.classList.remove('card-jiggle');void card.offsetWidth;card.classList.add('card-jiggle','card-dim');later(zoom,560)},1150);
+  later(()=>{card.classList.remove('card-jiggle');void card.offsetWidth;card.classList.add('card-jiggle','card-dim');later(zoom,330)},1150);
   function zoom(){const cats=[...board.querySelectorAll('.cell.cat')].filter(c=>c.querySelector('svg'));if(!cats.length)return;
     /* sprites run in a layer inside the overlay, under the card (card is raised in css) and over the backdrop */
     const L=f.layer=document.createElement('div');L.className='zoom-layer';L.setAttribute('aria-hidden','true');ov.insertBefore(L,ov.firstChild);
     const or=ov.getBoundingClientRect(),n=S.puzzle.n,cw=board.clientWidth/n,W=cw*1.3,mid=or.width/2;
-    /* lanes clear of the card: a runner whose row is behind the card veers up or down to the nearer one */
-    const crd=card.getBoundingClientRect(),cTop=crd.top-or.top,cBot=crd.bottom-or.top,laneUp=Math.max(W*.62,cTop-cw*.12),laneDn=Math.min(or.height-cw*.08,cBot+W*.72);
-    const laneFor=y=>y<cTop-cw*.1||y-W*.6>cBot?y:(y-cTop<cBot-y&&laneUp<cTop?laneUp:laneDn);
+    /* the card's words turn into zoomies too (the button keeps its label) */
+    card.querySelectorAll(':scope > :not(.row)').forEach(e=>{e.textContent=e.tagName==='H2'?'Zoomies!':'Zoomies zoomies zoomies'});
     window.NapMapSound&&window.NapMapSound.play('zoomies');
     const stag=Math.min(90,520/Math.max(1,cats.length-1)),runners=[];
     cats.forEach((cell,i)=>{const r=cell.getBoundingClientRect(),x0=r.left-or.left+r.width/2,y0=r.top-or.top+r.height*.88;
       const curled=cell.querySelector('svg'),coat=(curled.getAttribute('class')||'').split(/\s+/).filter(c=>c.startsWith('coat-')).join(' ');
-      const dir=x0<mid?-1:1,x1=dir<0?-W*.8:or.width+W*.8,el=document.createElement('div');el.className='cat-walker zoomer';
+      const dir=x0<mid?-1:1,el=document.createElement('div');el.className='cat-walker zoomer';
       el.style.width=W+'px';el.style.height=W*52/72+'px';el.style.opacity=0;
       el.innerHTML=`<div class="cw-face">${walkerSVG(coat)}</div>`;el.firstChild.style.transform=`scaleX(${dir})`;
       const svg=el.querySelector('svg');svg.classList.add('zoomy');L.appendChild(el);
       /* a zig on one in three, a hop over the neighbours on another */
       const style=i%3===1?'zig':i%3===2?'hop':'dash';
-      runners.push({el,svg,cell,x0,y0,x1,dir,style,lane:laneFor(y0),t0:i*stag,woke:false,ran:false,puff:0})});
-    const tWake=230,tRun=620,start=performance.now(),end=stag*(cats.length-1)+tWake+tRun+60;
+      runners.push({el,svg,cell,x0,y0,dir,style,t0:i*stag,woke:false,ran:-1,puff:0})});
+    /* each cat wakes, bolts for the nearer side wall and bonks into it, ricochets across to the far wall and bonks
+       again, then streaks off the top or bottom of the board */
+    const wl=W*.42,wr=or.width-W*.42,yMin=W*.66,yMax=or.height-cw*.08,v=or.width/460,tWake=230,tBonk=340;
+    const clampY=y=>Math.max(yMin,Math.min(yMax,y)),mix=(a,b,t)=>a+(b-a)*t;
+    runners.forEach((R,i)=>{const d1=R.dir,xa=d1<0?wl:wr,xb=d1<0?wr:wl,ya=clampY(R.y0),ymid=(yMin+yMax)/2,
+        s=R.y0<ymid?1:-1,yb=clampY(R.y0+s*cw*(1.5+(i%3)*.6)),xe=Math.max(wl,Math.min(wr,xb+d1*cw*3)),ye=yb<ymid?-W:or.height+W;
+      const run=(x0,y0,x1,y1,min)=>({type:'run',x0,y0,x1,y1,dir:Math.sign(x1-x0)||d1,dur:Math.max(min,Math.hypot(x1-x0,y1-y0)/v)});
+      const segs=[{type:'wake',x:R.x0,y:R.y0,dur:tWake},run(R.x0,R.y0,xa,ya,260),{type:'bonk',x:xa,y:ya,dir:d1,next:-d1,dur:tBonk},
+        run(xa,ya,xb,yb,380),{type:'bonk',x:xb,y:yb,dir:-d1,next:d1,dur:tBonk},run(xb,yb,xe,ye,380)];
+      let acc=R.t0;segs.forEach((g,j)=>{g.t0=acc;acc+=g.dur;g.j=j});R.segs=segs;R.total=acc;R.seg=0});
+    const end=Math.max(...runners.map(R=>R.total))+60,start=performance.now();
     const dust=(x,y,dir)=>{const d=document.createElement('i');d.className='zoom-dust';d.style.left=x+'px';d.style.top=y+'px';
       d.style.setProperty('--dx',(-dir*cw*.35)+'px');L.appendChild(d);setTimeout(()=>d.remove(),420)};
     const frame=now=>{if(!ok()){stopFinale();return}const t=now-start;
-      runners.forEach(R=>{const u=t-R.t0;if(u<0)return;let x=R.x0,y=R.y0,sx=1,sy=1,rot=0;
+      runners.forEach(R=>{if(t<R.t0)return;if(t>=R.total){R.el.style.opacity=0;return}
+        while(R.seg<R.segs.length-1&&t>=R.segs[R.seg].t0+R.segs[R.seg].dur)R.seg++;
+        const g=R.segs[R.seg],u=t-g.t0,p=Math.min(1,u/g.dur);let x,y,sx=1,sy=1,rot=0,fd=R.dir;
         if(!R.woke){R.woke=true;R.cell.classList.add('zoomed');R.el.style.opacity=1}
-        if(u<tWake){/* wake: pops up from the curl, ears up, eyes wide, a little startled hop */
-          const p=u/tWake;sy=.7+.3*smooth(Math.min(1,p*1.6));sx=1.15-.15*smooth(Math.min(1,p*1.6));y-=Math.sin(p*Math.PI)*cw*.22}
-        else if(u<tWake+tRun){if(!R.ran){R.ran=true;R.svg.classList.add('running');dust(R.x0,R.y0,R.dir)}
-          const p=(u-tWake)/tRun,e=p*p*(1.4-.4*p);x=R.x0+(R.x1-R.x0)*e;sx=1.18;sy=.88;rot=R.dir*-4;
-          const v=smooth(Math.min(1,p/.35));y=R.y0+(R.lane-R.y0)*v;if(R.lane!==R.y0&&p<.35)rot+=(R.lane<R.y0?-1:1)*R.dir*14*Math.sin(p/.35*Math.PI);
-          if(R.style==='zig')y+=Math.sin(p*Math.PI*2)*cw*.32;
-          if(R.style==='hop'&&p>.15&&p<.55)y-=Math.sin((p-.15)/.4*Math.PI)*cw*.55;
-          if(now-R.puff>110){R.puff=now;dust(x-R.dir*W*.35,y,R.dir)}}
-        else{R.el.style.opacity=0;return}
+        if(g.type==='wake'){/* pops up from the curl, ears up, eyes wide, a little startled hop */
+          x=g.x;y=g.y;const q=smooth(Math.min(1,p*1.6));sy=.7+.3*q;sx=1.15-.15*q;y-=Math.sin(p*Math.PI)*cw*.22}
+        else if(g.type==='run'){if(R.seg!==R.ran){R.ran=R.seg;R.svg.classList.add('running');dust(g.x0,g.y0,g.dir)}
+          const e=p*p*(1.4-.4*p);x=mix(g.x0,g.x1,e);y=mix(g.y0,g.y1,e);sx=1.18;sy=.88;rot=g.dir*-4;fd=g.dir;
+          if(g.j===1&&R.style==='hop'&&p>.15&&p<.55)y-=Math.sin((p-.15)/.4*Math.PI)*cw*.5;
+          if(g.j===3&&R.style==='zig')y+=Math.sin(p*Math.PI*2)*cw*.28;
+          if(now-R.puff>110){R.puff=now;dust(x-g.dir*W*.35,y,g.dir)}}
+        else{/* bonk: flat against the wall, then a dazed wobble back out */
+          R.svg.classList.remove('running');R.ran=-1;
+          if(!g['hit']){g['hit']=1;for(let q=0;q<3;q++)dust(g.x+g.dir*W*.4,g.y-W*.2-q*cw*.14,-g.dir*(q%2?1:-1)*.6)}
+          const hit=Math.min(1,p/.28),back=p<.28?0:smooth(Math.min(1,(p-.28)/.45));
+          x=g.x-g.dir*cw*.2*back;y=g.y-Math.sin(Math.min(1,(p-.2)/.5)*Math.PI)*(p>.2?cw*.12:0);
+          sx=1-.26*Math.sin(hit*Math.PI/2)*(1-back);sy=1+.14*Math.sin(hit*Math.PI/2)*(1-back);rot=-g.dir*Math.sin(p*Math.PI*3)*7*(1-p);fd=p<.55?g.dir:g.next}
+        R.el.firstChild.style.transform=`scaleX(${fd})`;
         R.el.style.transform=`translate(${x}px,${y}px) translate(-50%,-86.5%) rotate(${rot}deg) scale(${sx},${sy})`});
       if(t<end)f.raf=requestAnimationFrame(frame);else{L.innerHTML='';}};
     f.raf=requestAnimationFrame(frame)}}

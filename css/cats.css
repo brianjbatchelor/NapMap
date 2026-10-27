@@ -74,7 +74,7 @@
   box-shadow:6px 6px 0 color-mix(in srgb,var(--ink) 50%,transparent)}
 .card.card-dim > :not(.row){opacity:.5}
 .overlay .card{position:relative;z-index:1}
-.card.card-jiggle{animation:card-jiggle .58s cubic-bezier(.3,.6,.4,1)}
+.card.card-jiggle{animation:card-jiggle .32s cubic-bezier(.3,.6,.4,1)}
 @keyframes card-jiggle{
   0%{transform:none}
   12%{transform:translateY(-6px) rotate(-3.2deg) scale(1.02)}
