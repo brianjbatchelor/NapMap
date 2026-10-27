@@ -330,7 +330,7 @@ function finale(){stopFinale();if(reduced())return;
 S.on('win',()=>{if(reduced())return;const go=()=>finale();whenIdleInner(go)});
 S.on('newPuzzle',stopFinale);
 document.getElementById('overlay')?.addEventListener('click',e=>{if(e.target.closest('[data-act]'))stopFinale()},true);
-document.addEventListener('click',e=>{if(e.target.closest('.chip[data-mode],#new,#restart,#archive-btn'))stopFinale()},true);
+document.addEventListener('click',e=>{if(e.target.closest('.chip[data-mode],.seg-btn,#new,#restart,#archive-btn'))stopFinale()},true);
 
 S.on('cat',d=>walk(d.k));
 S.on('newPuzzle',()=>{idle=[];[...walks].forEach(w=>finish(w))});

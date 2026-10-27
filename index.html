@@ -85,14 +85,31 @@
     <button class="sp-mute" id="sound" type="button" aria-label="Sound" aria-pressed="true"></button>
   </header>
 
-  <div class="modes" role="group" aria-label="Puzzle size">
+  <div class="modes" role="group" aria-label="Puzzle of the day and archive">
     <button class="chip" data-mode="daily" id="m-daily">Daily <small>8×8</small></button>
-    <button class="chip" data-mode="6" id="m-6">Easy <small>6×6</small></button>
-    <button class="chip" data-mode="7" id="m-7">Medium <small>7×7</small></button>
-    <button class="chip" data-mode="8" id="m-8">Hard <small>8×8</small></button>
-    <button class="chip" data-mode="9" id="m-9">Expert <small>9×9</small></button>
-    <button class="chip" data-mode="10" id="m-10">Master <small>10×10</small></button>
     <button type="button" class="arc-chip" id="archive-btn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Archive</button>
+  </div>
+
+  <div class="styles-row" id="size-row">
+    <span class="seg-label" id="size-label">Size</span>
+    <div class="seg" role="radiogroup" aria-labelledby="size-label">
+      <button type="button" class="seg-btn" role="radio" data-size="6" aria-checked="false">6×6</button>
+      <button type="button" class="seg-btn" role="radio" data-size="7" aria-checked="false">7×7</button>
+      <button type="button" class="seg-btn" role="radio" data-size="8" aria-checked="false">8×8</button>
+      <button type="button" class="seg-btn" role="radio" data-size="9" aria-checked="false">9×9</button>
+      <button type="button" class="seg-btn" role="radio" data-size="10" aria-checked="false">10×10</button>
+    </div>
+  </div>
+
+  <div class="styles-row" id="level-row">
+    <span class="seg-label" id="level-label">Level</span>
+    <div class="seg" role="radiogroup" aria-labelledby="level-label">
+      <button type="button" class="seg-btn" role="radio" data-level="easy" aria-checked="false" title="Easy: 1-2 stars, forced cats and simple lines">Easy</button>
+      <button type="button" class="seg-btn" role="radio" data-level="medium" aria-checked="false" title="Medium: 2-3 stars, adds squeezes">Medium</button>
+      <button type="button" class="seg-btn" role="radio" data-level="hard" aria-checked="false" title="Hard: 3-4 stars">Hard</button>
+      <button type="button" class="seg-btn" role="radio" data-level="expert" aria-checked="false" title="Expert: 4 stars, needs grouped areas">Expert</button>
+    </div>
+    <span class="seg-note" id="level-note"></span>
   </div>
 
   <div class="styles-row">

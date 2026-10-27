@@ -16,18 +16,25 @@ const dailySeed=k=>k*31+7;
 const bus={};
 const on=(t,f)=>{(bus[t]=bus[t]||[]).push(f)};
 const emit=(t,d)=>{(bus[t]||[]).forEach(f=>{try{f(d)}catch(e){console.error(e)}})};
-const info=()=>({mode,n:P.n,seed:P.seed,dateKey:P.dateKey||null,timeMs:elapsed+(startT?Date.now()-startT:0),heartsLost:3-lives});
+const info=()=>({mode,level:P.lv||null,n:P.n,seed:P.seed,dateKey:P.dateKey||null,timeMs:elapsed+(startT?Date.now()-startT:0),heartsLost:3-lives});
 
+/* size and difficulty are separate choices: size 6-10, level easy/medium/hard/expert (Daily is always 8x8, Cozy, medium) */
+const SIZES=[6,7,8,9,10];
+let level=DIFF.LEVELS.includes(store.get('level','medium'))?store.get('level','medium'):'medium';
+let size=SIZES.includes(+store.get('size',0))?+store.get('size',0):SIZES.includes(+store.get('mode',0))?+store.get('mode',0):7;
 function newPuzzle(m,seed,opts={}){mode=m;const n=m==='daily'?8:+m;let dateKey=null;
+  if(m!=='daily'){size=n;store.set('size',n)}
+  if(opts.level&&DIFF.LEVELS.includes(opts.level)){level=opts.level;store.set('level',level)}
+  const lv=m==='daily'?null:level;
   if(m==='daily'){dateKey=opts.dateKey||today();seed=dailySeed(dateKey)}
   else if(seed==null)seed=(Math.random()*2**31)|0;
   const my=++genToken,wrap=document.querySelector('.board-wrap');
   /* --- styles: Daily is always Cozy; other modes use the player's board style (opts.style overrides) --- */
   const style=DIFF.styleFor(m,opts.style||boardStyle);
-  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.dateKey=dateKey;P.live=m==='daily'&&dateKey===today();P.style=style;reset();store.set('mode',m);emit('newPuzzle',info())};
+  const use=p=>{if(my!==genToken)return;P=p;P.seed=seed;P.lv=lv;P.dateKey=dateKey;P.live=m==='daily'&&dateKey===today();P.style=style;reset();store.set('mode',m);emit('newPuzzle',info())};
   /* --- end styles --- */
   /* --- difficulty: rated generation (js/difficulty.js), target per mode and style --- */
-  const target=DIFF.targetFor(m,style),build=()=>DIFF.generateRated(n,seed,target,style);
+  const target=DIFF.targetFor(m,style,lv),build=()=>DIFF.generateRated(n,seed,target,style);
   if(!slowBuild(n,style)||!P||!genWorker){wrap.removeAttribute('aria-busy');use(build());return}
   /* slow combinations (9x9 and 10x10 in every style) build off the main thread; the first page load stays synchronous */
   /* --- end difficulty --- */
@@ -110,6 +117,10 @@ function render(){const n=P.n,b=$('board');renderAxes(n);b.style.gridTemplateCol
     s.title=`Difficulty ${lv} of 4: ${STAR_TIPS[lv-1]}`;s.setAttribute('aria-label',`Difficulty ${lv} of 4`);$('label').appendChild(s)}
   /* --- end difficulty --- */
   document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.setAttribute('aria-pressed',ch.dataset.mode==mode));
+  document.querySelectorAll('.seg-btn[data-size]').forEach(b=>b.setAttribute('aria-checked',String(+b.dataset.size===size)));
+  document.querySelectorAll('.seg-btn[data-level]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.level===level)));
+  ['size-row','level-row'].forEach(id=>$(id)&&$(id).classList.toggle('idle',mode==='daily'));
+  if($('level-note'))$('level-note').textContent=mode==='daily'?'Daily is always 8×8, Medium':'';
   $('undo').disabled=!undo.length||done;$('hint').disabled=done;renderStats()}
 /* sleeping-cat coat, stable per puzzle and cell; stepping by 3 through 7 coats keeps nearby beds different (css/cats.css) */
 const COATS=['tabby','black','white','grey','calico','tuxedo','siamese'];
@@ -119,7 +130,9 @@ function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(
 function tick(){$('timer').textContent=fmt(elapsed+(startT?Date.now()-startT:0))}
 function startClock(){if(startT||done)return;if(!elapsed)emit('start',info());startT=Date.now();timerId=setInterval(tick,250)}
 function stopClock(){if(startT){elapsed+=Date.now()-startT;startT=null}clearInterval(timerId);tick()}
-function renderStats(){const key=mode==='daily'?'daily':'n'+P.n,best=store.get('best:'+key,null),wins=store.get('wins:'+key,0);
+/* best times and win counts are kept per size and level (Daily has its own) */
+const statKey=()=>mode==='daily'?'daily':'n'+P.n+':'+(P.lv||'medium');
+function renderStats(){const key=statKey(),best=store.get('best:'+key,null),wins=store.get('wins:'+key,0);
   let h=`<span>Solved: <b>${wins}</b></span><span>Best: <b>${best?fmt(best):'—'}</b></span>`;
   if(mode==='daily'){const st=store.get('streak',{n:0,last:0}),y=new Date();y.setDate(y.getDate()-1); // a missed day breaks the streak
     h+=`<span>Streak: <b>${st.last===today()||st.last===keyOf(y)?st.n:0}</b></span>`}$('stats').innerHTML=h}
@@ -139,7 +152,7 @@ function placeCat(k){if(done||cells[k]===2||cells[k]===3)return;startClock();
     if(navigator.vibrate)try{navigator.vibrate(60)}catch(_){}
     emit('wrong',{k,...info()});if(lives<=0)lose()}}
 function checkWin(){if(cells.filter(s=>s===2).length===P.n){done=true;stopClock();
-  const t=elapsed,key=mode==='daily'?'daily':'n'+P.n,best=store.get('best:'+key,null);
+  const t=elapsed,key=statKey(),best=store.get('best:'+key,null);
   store.set('wins:'+key,store.get('wins:'+key,0)+1);const nb=!best||t<best;if(nb)store.set('best:'+key,t);
   if(mode==='daily'){if(!store.get('daily:'+P.dateKey,null))store.set('daily:'+P.dateKey,{timeMs:t,heartsLost:3-lives});}
   /* streak: by the puzzle's own date, so today's daily started before midnight and solved after it still counts */
@@ -149,7 +162,7 @@ function checkWin(){if(cells.filter(s=>s===2).length===P.n){done=true;stopClock(
   cells=cells.map(s=>s===2?2:s===3?3:1);render();
   showCard(`<h2>Everybody's napping!</h2><p>Solved in ${fmt(t)}${nb?' · new best':''}${lives<3?` · ${3-lives} heart${3-lives>1?'s':''} lost`:''}</p>
     <div class="win-extra" id="win-extra"></div>
-    <div class="row">${mode==='daily'?'<button class="btn primary" data-act="practice">Play a Hard puzzle</button>':'<button class="btn primary" data-act="new">Next puzzle</button>'}</div>`);emit('win',info())}}
+    <div class="row">${mode==='daily'?'<button class="btn primary" data-act="practice">Play a practice puzzle</button>':'<button class="btn primary" data-act="new">Next puzzle</button>'}</div>`);emit('win',info())}}
 function lose(){done=true;stopClock();emit('lose',info());
   showCard(`<h2>Out of hearts</h2><p>Three cats in the wrong beds. Try the same puzzle again or see where they belonged.</p>
   <div class="row"><button class="btn primary" data-act="retry">Try again</button><button class="btn" data-act="reveal">Show solution</button></div>`)}
@@ -159,7 +172,7 @@ function showCard(html){const o=$('overlay'),kb=!!document.activeElement?.closes
 /* the click that follows the board tap which ended the game lands on the card that tap just opened: ignore it */
 let cardAt=-1e9;
 $('overlay').addEventListener('click',e=>{const a=e.target.closest('[data-act]')?.dataset.act;if(!a||e.detail&&performance.now()-cardAt<500)return;
-  if(a==='new')newPuzzle(mode);else if(a==='practice')newPuzzle('8');else if(a==='retry')reset();
+  if(a==='new')newPuzzle(mode);else if(a==='practice')newPuzzle(String(size));else if(a==='retry')reset();
   else if(a==='reveal'){$('overlay').hidden=true;cells=cells.map((s,k)=>isSol(k)?2:s===3?3:1);render()}
   if($('overlay').hidden||!$('overlay').contains(document.activeElement))board.querySelector('.cell[tabindex="0"]')?.focus({preventScroll:true})});
 
@@ -234,8 +247,10 @@ board.addEventListener('keydown',e=>{const el=e.target.closest('.cell');if(!el||
 $('undo').onclick=()=>{if(!undo.length||done)return;const prev=undo.pop();cells=cells.map((s,k)=>s===3?3:prev[k]===3?3:prev[k]);render()};
 $('hint').onclick=hint;
 $('restart').onclick=reset;
-$('new').onclick=()=>newPuzzle(mode==='daily'?'8':mode);
-document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.onclick=()=>newPuzzle(ch.dataset.mode));
+$('new').onclick=()=>newPuzzle(mode==='daily'?String(size):mode);
+document.querySelectorAll('.chip[data-mode]').forEach(ch=>ch.onclick=()=>newPuzzle(ch.dataset.mode==='daily'?'daily':String(size)));
+document.querySelectorAll('.seg-btn[data-size]').forEach(b=>b.onclick=()=>newPuzzle(b.dataset.size));
+document.querySelectorAll('.seg-btn[data-level]').forEach(b=>b.onclick=()=>newPuzzle(String(size),undefined,{level:b.dataset.level}));
 /* --- styles --- */
 document.querySelectorAll('.seg-btn[data-style]').forEach(b=>b.onclick=()=>setStyle(b.dataset.style));
 /* --- end styles --- */
@@ -244,7 +259,7 @@ $('autox').onchange=()=>store.set('autox',$('autox').checked);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&startT){elapsed+=Date.now()-startT;startT=null;clearInterval(timerId);startT=null;window._paused=true}
   else if(!document.hidden&&window._paused&&!done){window._paused=false;startT=Date.now();timerId=setInterval(tick,250)}});
 
-window.NapMap={BEDS,on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,setStyle,
+window.NapMap={BEDS,get level(){return level},get size(){return size},on,emit,newPuzzle,today,keyOf,dateOf,dailySeed,store,fmt,showCard,info,setStyle,
   get puzzle(){return P},get mode(){return mode},get done(){return done},get style(){return boardStyle}};
-newPuzzle(store.get('mode','daily'));
+newPuzzle(store.get('mode','daily')==='daily'?'daily':String(size));
 })();
