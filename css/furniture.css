@@ -18,9 +18,9 @@
 .board{position:relative;isolation:isolate}
 .cell svg{z-index:2}
 .furn{position:absolute;z-index:1;pointer-events:none;overflow:hidden}
-.furn svg{position:absolute;inset:6%;width:88%;height:88%;overflow:visible;opacity:.82;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .furn svg{opacity:.7}}
-:root[data-theme="dark"] .furn svg{opacity:.7}
+.furn svg{position:absolute;inset:6%;width:88%;height:88%;overflow:visible;opacity:.72;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .furn svg{opacity:.6}}
+:root[data-theme="dark"] .furn svg{opacity:.6}
 
 /* each piece of furniture sits in a full-board layer masked to its own area, so it can move without ever showing in another */
 .furn-clip{position:absolute;inset:0;z-index:1;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}

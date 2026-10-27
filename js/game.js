@@ -89,7 +89,7 @@ function render(){const n=P.n,b=$('board');renderAxes(n);b.style.gridTemplateCol
       e.style.borderRadius=`${up&&lf?R:0} ${up&&rt?R:0} ${dn&&rt?R:0} ${dn&&lf?R:0}`;e.title=BEDS[P.colors[g]];
       e.style.setProperty('--et',+up);e.style.setProperty('--eb',+dn);e.style.setProperty('--el',+lf);e.style.setProperty('--er',+rt);
       /* --- styles: the room look (cozy/boxy) draws its blocks, edges and seams in js/furniture.js, so cells get no borders --- */
-      const side=(edge,outer)=>outer||room?'0px solid transparent':edge?'1.5px solid var(--line)':'.5px solid var(--seam)';
+      const side=(edge,outer)=>outer||room?'0px solid transparent':edge?'1.5px solid var(--line)':'1px solid var(--seam)';
       e.style.borderTop=side(up,r===0);e.style.borderBottom=side(dn,r===n-1);e.style.borderLeft=side(lf,c===0);e.style.borderRight=side(rt,c===n-1);
       row.appendChild(e);cellEls.push(e)}}
   cellEls.forEach((e,k)=>{const s=cells[k],cls='cell'+(s===2?' cat':'')+(s===3?' wrong':'');

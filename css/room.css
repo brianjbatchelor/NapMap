@@ -26,7 +26,7 @@
 .rm-fill{fill:color-mix(in srgb,var(--bed) var(--block-mix),transparent)}
 .rm-shadow{fill:var(--rm-shade)}
 .rm-edge{fill:none;stroke:var(--rm-edge);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-.rm-seam{fill:none;stroke:var(--seam);stroke-width:.5px;vector-effect:non-scaling-stroke}
+.rm-seam{fill:none;stroke:var(--seam);stroke-width:1px;vector-effect:non-scaling-stroke}
 .rm-stitch{fill:none;stroke:var(--stitch);stroke-width:1.5px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .rm-hi{fill:rgba(255,255,255,.38)}.rm-hi2{fill:rgba(255,255,255,.2)}
 .rm-lo{fill:rgba(0,0,0,.13)}.rm-lo2{fill:rgba(0,0,0,.07)}
@@ -38,9 +38,9 @@
 .rm-blk[data-bed="9"]{--bed:var(--r9)}
 
 /* furniture stands on the block's floor: full box, bottom-anchored by preserveAspectRatio xMidYMax meet */
-.board.room .furn svg{inset:0;width:100%;height:100%;opacity:.9}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .board.room .furn svg{opacity:.78}}
-:root[data-theme="dark"] .board.room .furn svg{opacity:.78}
+.board.room .furn svg{inset:0;width:100%;height:100%;opacity:.8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .board.room .furn svg{opacity:.68}}
+:root[data-theme="dark"] .board.room .furn svg{opacity:.68}
 
 /* X marks get a slightly stronger halo over the busier room art */
 .board.room .cell .x{opacity:.85}
