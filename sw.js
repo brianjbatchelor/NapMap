@@ -1,6 +1,6 @@
 /* Offline support: precache the app shell; serve game files network-first (cache when offline or slow), fonts cache-first.
    Bump VERSION whenever any shell file changes. */
-const VERSION = 'napmap-v23';
+const VERSION = 'napmap-v24';
 const SHELL = ['./', 'index.html', 'css/style.css', 'css/furniture.css', 'js/furniture.js', 'js/generator.js', 'js/generator-shaped.js', 'js/game.js',
   'css/archive.css', 'js/archive.js',
   'css/polish.css', 'js/polish.js', 'js/gen-worker.js',

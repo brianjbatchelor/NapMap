@@ -67,6 +67,12 @@
 @media (prefers-reduced-motion:reduce){.cat-walker{display:none}.cell.cat-arriving svg{opacity:1}}
 
 /* ---------- win finale (js/cats.js): card jiggle, then zoomies ---------- */
+/* when the jiggle starts the card melts to half strength so the runners show through; the button stays solid */
+.card{transition:background-color 1.3s ease,border-color 1.3s ease,box-shadow 1.3s ease}
+.card > *{transition:opacity 1.3s ease}
+.card.card-dim{background-color:color-mix(in srgb,var(--surface) 50%,transparent);border-color:color-mix(in srgb,var(--ink) 50%,transparent);
+  box-shadow:6px 6px 0 color-mix(in srgb,var(--ink) 50%,transparent)}
+.card.card-dim > :not(.row){opacity:.5}
 .overlay .card{position:relative;z-index:1}
 .card.card-jiggle{animation:card-jiggle .58s cubic-bezier(.3,.6,.4,1)}
 @keyframes card-jiggle{
@@ -91,4 +97,4 @@
 .zoom-dust{position:absolute;width:9px;height:9px;margin:-7px 0 0 -4.5px;border-radius:50%;pointer-events:none;box-shadow:0 0 0 1.5px rgba(43,47,69,.25);
   background:color-mix(in srgb,var(--surface) 80%,var(--muted));opacity:.85;animation:zoom-dust .42s ease-out forwards}
 @keyframes zoom-dust{to{transform:translate(var(--dx),-6px) scale(2.2);opacity:0}}
-@media (prefers-reduced-motion:reduce){.card.card-jiggle{animation:none}.zoom-layer{display:none}.cell.zoomed svg:not(.x){opacity:1}}
+@media (prefers-reduced-motion:reduce){.card,.card > *{transition:none}.card.card-jiggle{animation:none}.zoom-layer{display:none}.cell.zoomed svg:not(.x){opacity:1}}

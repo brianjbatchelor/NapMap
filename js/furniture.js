@@ -135,20 +135,57 @@ function drawRoom(P,board){const n=P.n,W=n*U,id='rm'+(++uid);
   layer.innerHTML=`<svg viewBox="0 0 ${W} ${W}" preserveAspectRatio="none"><defs>${defs}</defs>${body}</svg>`;
   board.insertBefore(layer,board.firstChild)}
 /* --- end styles --- */
+/* A mask the shape of area g (block outline for room boards, its cells for classic), so furniture that moves can
+   never be seen outside its own area */
+function areaMask(P,g,room){const n=P.n;let svg;
+  if(room)svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n*U} ${n*U}" preserveAspectRatio="none"><path d="${outline(P,g)}"/></svg>`;
+  else{let d='';for(let k=0;k<n*n;k++)if(P.reg[k]===g)d+=`M${k%n} ${k/n|0}h1v1h-1z`;
+    svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}" preserveAspectRatio="none"><path d="${d}"/></svg>`}
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`}
+const pct=(v,n)=>v/n*100+'%';
+const setBox=(f,n,[l,t,w,h])=>{f.style.left=pct(l,n);f.style.top=pct(t,n);f.style.width=pct(w,n);f.style.height=pct(h,n)};
 function draw(){const P=S.puzzle,board=document.getElementById('board');if(!P||!board)return;
-  board.querySelectorAll('.furn,.room-layer').forEach(e=>e.remove());const n=P.n;
+  board.querySelectorAll('.furn-clip,.room-layer').forEach(e=>e.remove());const n=P.n;
   /* --- styles --- */
   const room=isRoom(P);if(room)drawRoom(P,board);
   /* --- end styles --- */
   for(let g=0;g<n;g++){const b=room?innerRect(P,g):bestRect(P,g),bed=P.colors[g];if(!b)continue;const d=document.createElement('div');
     d.className='furn';d.dataset.bed=bed;d.dataset.g=g;
-    if(room){const W=n*U;/* room: inside the block's inset edge; the drawing stands on the bottom (its floor) */
-      d.style.left=(b.c0*U+PAD)/W*100+'%';d.style.top=(b.r0*U+PAD)/W*100+'%';
-      d.style.width=(b.w*U-2*PAD)/W*100+'%';d.style.height=(b.h*U-2*PAD)/W*100+'%'}
-    else{d.style.left=b.c0/n*100+'%';d.style.top=b.r0/n*100+'%';d.style.width=b.w/n*100+'%';d.style.height=b.h/n*100+'%'}
+    /* the box in cell units: room boards stand inside the block's inset edge, the drawing on the bottom (its floor) */
+    const box=room?[b.c0+PAD/U,b.r0+PAD/U,b.w-2*PAD/U,b.h-2*PAD/U]:[b.c0,b.r0,b.w,b.h];
+    d.dataset.box=box.join(',');setBox(d,n,box);
     d.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="xMid${room?'YMax':'YMid'} meet" aria-hidden="true">${ART[bed]}</svg>`;
-    board.appendChild(d)}}
+    const clip=document.createElement('div');clip.className='furn-clip';clip.setAttribute('aria-hidden','true');
+    const m=areaMask(P,g,room);clip.style.webkitMaskImage=m;clip.style.maskImage=m;
+    clip.appendChild(d);board.appendChild(clip)}}
 S.on('newPuzzle',draw);
 draw();
-window.NapMapArt={ART,bestRect,outline,innerRect};
+
+/* --- napping: once its cat has curled up, an area's furniture slowly shrinks to about 2x2 cells and slides in
+   behind the sleeper (css/furniture.css times it); taking the cat back (undo, retry) puts the furniture back --- */
+const NAP=2;
+function napBox(P,f,k){const n=P.n,g=P.reg[k],room=isRoom(P),kk=room?1:.88,[l,t,w,h]=f.dataset.box.split(',').map(Number);
+  const a=Math.min(NAP,kk*Math.min(w,h)),side=a/kk,cx=k%n+.5,cy=(k/n|0)+.5,cells=[];
+  for(let q=0;q<n*n;q++)if(P.reg[q]===g)cells.push([q%n,q/n|0]);
+  const ov=(lo,hi,c)=>Math.max(0,Math.min(hi,c+1)-Math.max(lo,c));
+  /* centred on the cat, nudged by up to half a cell toward more of its own area so little gets cropped */
+  const reach=Math.max(0,(side-1)/2);let best=null;
+  for(const dy of[0,-.5,.5])for(const dx of[0,-.5,.5]){if(Math.abs(dx)>reach||Math.abs(dy)>reach)continue;
+    const x=cx+dx,y=cy+dy;let sc=0;for(const[c,r]of cells)sc+=ov(x-side/2,x+side/2,c)*ov(y-side/2,y+side/2,r);
+    sc-=.001*(Math.abs(dx)+Math.abs(dy));if(!best||sc>best.sc)best={sc,x,y}}
+  return[best.x-side/2,best.y-side/2,side,side]}
+function nap(P,f,k){f.dataset.napk=k;f.classList.add('nap');setBox(f,P.n,napBox(P,f,k))}
+function unnap(P,f){delete f.dataset.napk;f.classList.remove('nap');setBox(f,P.n,f.dataset.box.split(',').map(Number))}
+/* jump a furniture box straight back to its place, no animation (before a cat plans its walk past it) */
+function settle(f){const P=S.puzzle;if(!f||!P||!f.classList.contains('nap'))return;
+  f.style.transition='none';unnap(P,f);void f.offsetWidth;f.style.transition=''}
+function syncNap(){const P=S.puzzle,board=document.getElementById('board');if(!P||!board)return;
+  const on=new Map();board.querySelectorAll('.cell.cat:not(.cat-arriving)').forEach(c=>{if(c.querySelector('svg')){const k=+c.dataset.k;on.set(P.reg[k],k)}});
+  board.querySelectorAll('.furn').forEach(f=>{const k=on.get(+f.dataset.g);
+    if(k==null){if(f.classList.contains('nap'))unnap(P,f)}
+    else if(!f.classList.contains('nap')||+f.dataset.napk!==k)nap(P,f,k)})}
+{const board=document.getElementById('board');let pend=0;
+  if(board&&window.MutationObserver)new MutationObserver(()=>{if(!pend)pend=requestAnimationFrame(()=>{pend=0;syncNap()})})
+    .observe(board,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})}
+window.NapMapArt={ART,bestRect,outline,innerRect,settle,syncNap};
 })();

@@ -183,6 +183,8 @@ const furnRect=(P,g)=>{const A=window.NapMapArt;if(!A)return null;
 const HALF=.62*1.3/2+.2;   /* cat half-width in cells, plus a little so it starts fully hidden */
 /* the plan and timeline for a cat at k on the current board (also handy from the console and tests) */
 function planFor(k){const P=S.puzzle;if(!P)return null;const n=P.n,g=P.reg[k];
+  /* furniture that already shrank behind an earlier cat (then undone) is put back before the path is planned */
+  window.NapMapArt&&window.NapMapArt.settle&&window.NapMapArt.settle(board.querySelector(`.furn[data-g="${g}"]`));
   const br=board.getBoundingClientRect(),origin={x:br.left+board.clientLeft,y:br.top+board.clientTop};
   const cw=board.clientWidth/n,furn=board.querySelector(`.furn[data-g="${g}"]`),rect=furnRect(P,g),art=artBox(furn,origin);
   const pl=rect&&CatPath.plan(n,P.reg,g,rect,k,art?art.l/cw:null,art?art.r/cw:null);
@@ -204,7 +206,7 @@ function walk(k){const P=S.puzzle;if(!P||reduced())return;
   el.innerHTML=`<div class="cw-face">${walkerSVG(coat)}</div>`;
   const face=el.firstChild,svg=face.firstChild,pw=svg.querySelector('.pw'),ps=svg.querySelector('.ps');
   cell.classList.add('cat-arriving');if(furn&&edge!=null)furn.classList.add('cat-behind');
-  board.insertBefore(el,board.querySelector('.furn'));
+  board.insertBefore(el,board.querySelector('.furn-clip'));
   const w={el,cell,furn,seed:board.dataset.seed,done:false,raf:0,landed:false};walks.add(w);
   const firstWalk=ph.find(p=>p.type==='walk');
   let dir=firstWalk?Math.sign(firstWalk.x1-firstWalk.x0)||side:side,flip=dir,lastT=0,pi=0,walking=null;
@@ -259,7 +261,7 @@ function walk(k){const P=S.puzzle;if(!P||reduced())return;
 /* ---------- win finale: the card jiggles, then every cat gets the zoomies and dashes off the board ---------- */
 let fin=null;
 function stopFinale(){if(!fin)return;const f=fin;fin=null;f.timers.forEach(clearTimeout);cancelAnimationFrame(f.raf);
-  f.layer&&f.layer.remove();f.card&&f.card.classList.remove('card-jiggle');
+  f.layer&&f.layer.remove();f.card&&f.card.classList.remove('card-jiggle','card-dim');
   board.querySelectorAll('.cell.zoomed').forEach(c=>c.classList.remove('zoomed'))}
 function finale(){stopFinale();if(reduced())return;
   const ov=document.getElementById('overlay'),card=ov&&ov.querySelector('.card');if(!card||ov.hidden)return;
@@ -267,7 +269,7 @@ function finale(){stopFinale();if(reduced())return;
   const ok=()=>fin===f&&!ov.hidden&&ov.contains(card)&&board.dataset.seed===f.seed;
   const later=(fn,ms)=>f.timers.push(setTimeout(()=>{if(ok())fn()},ms));
   /* polish.js's hop runs for about a second after the last cat curls up; jiggle after that */
-  later(()=>{card.classList.remove('card-jiggle');void card.offsetWidth;card.classList.add('card-jiggle');later(zoom,560)},1150);
+  later(()=>{card.classList.remove('card-jiggle');void card.offsetWidth;card.classList.add('card-jiggle','card-dim');later(zoom,560)},1150);
   function zoom(){const cats=[...board.querySelectorAll('.cell.cat')].filter(c=>c.querySelector('svg'));if(!cats.length)return;
     /* sprites run in a layer inside the overlay, under the card (card is raised in css) and over the backdrop */
     const L=f.layer=document.createElement('div');L.className='zoom-layer';L.setAttribute('aria-hidden','true');ov.insertBefore(L,ov.firstChild);

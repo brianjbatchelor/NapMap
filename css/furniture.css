@@ -21,3 +21,11 @@
 .furn svg{position:absolute;inset:6%;width:88%;height:88%;overflow:visible;opacity:.82;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .furn svg{opacity:.7}}
 :root[data-theme="dark"] .furn svg{opacity:.7}
+
+/* each piece of furniture sits in a full-board layer masked to its own area, so it can move without ever showing in another */
+.furn-clip{position:absolute;inset:0;z-index:1;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.furn-clip .furn{z-index:auto}
+/* once its cat has curled up the furniture slowly shrinks to about 2x2 cells and slides in behind the sleeper (js/furniture.js) */
+.furn{transition:left .5s ease,top .5s ease,width .5s ease,height .5s ease}
+.furn.nap{transition:left 2s cubic-bezier(.45,0,.25,1) .4s,top 2s cubic-bezier(.45,0,.25,1) .4s,width 2s cubic-bezier(.45,0,.25,1) .4s,height 2s cubic-bezier(.45,0,.25,1) .4s}
+@media (prefers-reduced-motion:reduce){.furn,.furn.nap{transition:none}}
