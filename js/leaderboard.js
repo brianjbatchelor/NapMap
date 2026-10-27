@@ -436,7 +436,7 @@ function renderControls() {
 
 /* ---------- win card ---------- */
 function setExtra(el, text, strong) {
-  if (!el || !el.isConnected) return;
+  if (!el || !el.isConnected || el.closest('.card-zoomies')) return;
   el.replaceChildren(h('p', { class: 'lb-win' }, strong ? h('b', null, strong) : null, strong && text ? ' ' : null, text));
 }
 S.on('win', async d => {

@@ -274,7 +274,8 @@ function finale(){stopFinale();if(reduced())return;
     /* sprites run in a layer inside the overlay, under the card (card is raised in css) and over the backdrop */
     const L=f.layer=document.createElement('div');L.className='zoom-layer';L.setAttribute('aria-hidden','true');ov.insertBefore(L,ov.firstChild);
     const or=ov.getBoundingClientRect(),n=S.puzzle.n,cw=board.clientWidth/n,W=cw*1.3,mid=or.width/2;
-    /* the card's words turn into zoomies too (the button keeps its label) */
+    /* the card's words turn into zoomies too (the button keeps its label); a later leaderboard line must not undo it */
+    card.classList.add('card-zoomies');
     card.querySelectorAll(':scope > :not(.row)').forEach(e=>{e.textContent=e.tagName==='H2'?'Zoomies!':'Zoomies zoomies zoomies'});
     window.NapMapSound&&window.NapMapSound.play('zoomies');
     const stag=Math.min(90,520/Math.max(1,cats.length-1)),runners=[];
@@ -293,9 +294,9 @@ function finale(){stopFinale();if(reduced())return;
     const clampY=y=>Math.max(yMin,Math.min(yMax,y)),mix=(a,b,t)=>a+(b-a)*t;
     runners.forEach((R,i)=>{const d1=R.dir,xa=d1<0?wl:wr,xb=d1<0?wr:wl,ya=clampY(R.y0),ymid=(yMin+yMax)/2,
         s=R.y0<ymid?1:-1,yb=clampY(R.y0+s*cw*(1.5+(i%3)*.6)),xe=Math.max(wl,Math.min(wr,xb+d1*cw*3)),ye=yb<ymid?-W:or.height+W;
-      const run=(x0,y0,x1,y1,min)=>({type:'run',x0,y0,x1,y1,dir:Math.sign(x1-x0)||d1,dur:Math.max(min,Math.hypot(x1-x0,y1-y0)/v)});
+      const run=(x0,y0,x1,y1,min,fast=1)=>({type:'run',x0,y0,x1,y1,dir:Math.sign(x1-x0)||d1,dur:Math.max(min,Math.hypot(x1-x0,y1-y0)/v/fast)});
       const segs=[{type:'wake',x:R.x0,y:R.y0,dur:tWake},run(R.x0,R.y0,xa,ya,260),{type:'bonk',x:xa,y:ya,dir:d1,next:-d1,dur:tBonk},
-        run(xa,ya,xb,yb,380),{type:'bonk',x:xb,y:yb,dir:-d1,next:d1,dur:tBonk},run(xb,yb,xe,ye,380)];
+        run(xa,ya,xb,yb,380),{type:'bonk',x:xb,y:yb,dir:-d1,next:d1,dur:tBonk},run(xb,yb,xe,ye,127,3)];
       let acc=R.t0;segs.forEach((g,j)=>{g.t0=acc;acc+=g.dur;g.j=j});R.segs=segs;R.total=acc;R.seg=0});
     const end=Math.max(...runners.map(R=>R.total))+60,start=performance.now();
     const dust=(x,y,dir)=>{const d=document.createElement('i');d.className='zoom-dust';d.style.left=x+'px';d.style.top=y+'px';
