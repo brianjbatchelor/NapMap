@@ -164,16 +164,24 @@ draw();
 /* --- napping: once its cat has curled up, an area's furniture slowly shrinks to about 2x2 cells and slides in
    behind the sleeper (css/furniture.css times it); taking the cat back (undo, retry) puts the furniture back --- */
 const NAP=2;
-function napBox(P,f,k){const n=P.n,g=P.reg[k],room=isRoom(P),kk=room?1:.88,[l,t,w,h]=f.dataset.box.split(',').map(Number);
-  const a=Math.min(NAP,kk*Math.min(w,h)),side=a/kk,cx=k%n+.5,cy=(k/n|0)+.5,cells=[];
+function napBox(P,f,k){const n=P.n,g=P.reg[k],room=isRoom(P),kk=room?1:.88,off=room?0:.06,[l,t,w,h]=f.dataset.box.split(',').map(Number);
+  const a=Math.min(NAP,kk*Math.min(w,h)),side=a/kk,cx=k%n+.5,cy=(k/n|0)+.52,cells=[];
   for(let q=0;q<n*n;q++)if(P.reg[q]===g)cells.push([q%n,q/n|0]);
+  /* where the drawing really sits inside its 100x100 box: the cat lies on the middle of that, not of the empty box */
+  let bb={x:0,y:0,width:100,height:100};
+  try{const r=f.querySelector('svg').getBBox();if(r.width>20&&r.height>20)bb=r}catch(e){}
+  const ax=(bb.x+bb.width/2)/100,ay=(bb.y+bb.height/2)/100,fw=bb.width/100*kk*side,fh=bb.height/100*kk*side;
   const ov=(lo,hi,c)=>Math.max(0,Math.min(hi,c+1)-Math.max(lo,c));
-  /* centred on the cat, nudged by up to half a cell toward more of its own area so little gets cropped */
-  const reach=Math.max(0,(side-1)/2);let best=null;
-  for(const dy of[0,-.5,.5])for(const dx of[0,-.5,.5]){if(Math.abs(dx)>reach||Math.abs(dy)>reach)continue;
-    const x=cx+dx,y=cy+dy;let sc=0;for(const[c,r]of cells)sc+=ov(x-side/2,x+side/2,c)*ov(y-side/2,y+side/2,r);
-    sc-=.001*(Math.abs(dx)+Math.abs(dy));if(!best||sc>best.sc)best={sc,x,y}}
-  return[best.x-side/2,best.y-side/2,side,side]}
+  /* centred on the cat; it only slides toward more of its own area when centring would crop a good part of the
+     picture, and if that still crops it the picture shrinks a little more so it fits inside its own area */
+  let best=null;
+  for(const m of[1,.85,.72,.6,.5]){const fw2=fw*m,fh2=fh*m;best=null;
+    for(const dy of[0,-.25,.25,-.5,.5])for(const dx of[0,-.25,.25,-.5,.5]){if(Math.abs(dx)>.4*fw2||Math.abs(dy)>.4*fh2)continue;
+      const x=cx+dx,y=cy+dy;let cov=0;for(const[c,r]of cells)cov+=ov(x-fw2/2,x+fw2/2,c)*ov(y-fh2/2,y+fh2/2,r);cov/=fw2*fh2;
+      const sc=cov-.08*(Math.abs(dx)+Math.abs(dy))/.25;if(!best||sc>best.sc)best={sc,x,y,cov,m}}
+    if(best&&best.cov>=.94)break}
+  const sd=side*best.m;
+  return[best.x-sd*(off+kk*ax),best.y-sd*(off+kk*ay),sd,sd]}
 function nap(P,f,k){f.dataset.napk=k;f.classList.add('nap');setBox(f,P.n,napBox(P,f,k))}
 function unnap(P,f){delete f.dataset.napk;f.classList.remove('nap');setBox(f,P.n,f.dataset.box.split(',').map(Number))}
 /* jump a furniture box straight back to its place, no animation (before a cat plans its walk past it) */
